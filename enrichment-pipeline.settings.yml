@@ -1,0 +1,12 @@
+name: AIPS CQ Requirements Enrichment Pipeline@{{env.BUILD_NUMBER}}
+environment: prod
+version: {{env.BUILD_NUMBER}}
+
+assembly_version: "1.0"
+auto_terminate: {{env.AUTO_TERMINATE}}
+core_instance_count: 3
+master_instance_count: 1
+aws_account_id: 971356129762
+is_production: true
+subnet: subnet-01d75376015f01864
+ec2_keyname: cda-2019

@@ -1,0 +1,146 @@
+deploy:
+  package:
+    - make package
+  packagePath: "target/scala-2.12/requirements-enrichment-pipeline-assembly-{{Values.assembly_version}}.jar"
+  bucketName: cq-requirements-enrichment-pipeline-deployments-{{Values.environment}}
+  deployPackageName: requirements-enrichment-pipeline-assembly-{{Values.version}}.jar
+
+# stack tags applies to EMR cluster and resource stack
+stackTags:
+  'seek:source:url': "https://github.com/SEEK-Jobs/aips-cq-requirements-enrichment-pipeline"
+  'seek:env:production': "{{Values.is_production}}"
+  'seek:user:service:type': "integration automation"
+  'seek:data:consumers': "internal"
+  'seek:data:types:internal': "anonymous derived"
+  'seek:data:types:restricted': "job-ads ontology"
+  'Name': {{Values.name}}
+
+cluster:
+  EbsRootVolumeSize: '10'
+  ScaleDownBehavior: 'TERMINATE_AT_TASK_COMPLETION'
+  Applications:
+    - Name: Hadoop
+    - Name: Hive
+    - Name: Hue
+    - Name: Ganglia
+    - Name: Spark
+    - Name: Zeppelin
+  AutoScalingRole: 'EMR_AutoScaling_DefaultRole'
+  Configurations:
+    - Classification: "spark-hive-site"
+      Properties:
+        "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+    - Classification: "spark-log4j"
+      Properties:
+        "log4j.org.apache.spark": "TRACE"
+    - Classification: "spark"
+      Properties:
+        "maximizeResourceAllocation": "true"
+  Instances:
+    Ec2KeyName: {{Values.ec2_keyname}}
+    Ec2SubnetId: {{Values.subnet}}
+    KeepJobFlowAliveWhenNoSteps: true
+    InstanceGroups:
+      - InstanceCount: {{Values.core_instance_count}}
+        InstanceRole: 'CORE'
+        InstanceType: "m5.xlarge"
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 96
+                VolumeType: "gp2"
+              VolumesPerInstance: 1
+        Name: "Core - 2"
+      - InstanceCount: {{Values.master_instance_count}}
+        InstanceRole: "MASTER"
+        InstanceType: "m5.xlarge"
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 32
+                VolumeType: "gp2"
+              VolumesPerInstance: 1
+        Name: "Master - 1"
+  JobFlowRole: 'CQRequirementsEnrichmentPipelineEmrEc2Role'
+  LogUri: s3n://aws-logs-{{Values.aws_account_id}}-ap-southeast-2/elasticmapreduce/
+  Name: {{Values.name}}
+  ReleaseLabel: 'emr-6.0.0'
+  SecurityConfiguration: 'requirements-enrichment-pipeline-emr-securityconfiguration'
+  ServiceRole: 'EMR_DefaultRole'
+  Steps:
+    - {{EmrHadoopDebuggingStep}}
+
+resources:
+  DeploymentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: cq-requirements-enrichment-pipeline-deployments-{{Values.environment}}
+      Tags:
+        - Key: "seek:data:types:internal"
+          Value: "system-artefacts"
+
+  EmrEc2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CQRequirementsEnrichmentPipelineEmrEc2Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:ListBucket"
+                Resource: arn:aws:s3:::aips-cq-data-{{Values.environment}}
+              - Effect: "Allow"
+                Action: "s3:*"
+                Resource: arn:aws:s3:::aips-cq-data-{{Values.environment}}/*
+              - Effect: "Allow"
+                Action: "s3:ListBucket"
+                Resource: "arn:aws:s3:::seek-dataplatform-prod"
+              - Effect: "Allow"
+                Action: "s3:GetObject"
+                Resource: "arn:aws:s3:::seek-dataplatform-prod/*"
+              - Effect: "Allow"
+                Action: "kms:*"
+                Resource: "*"
+              - Effect: "Allow"
+                Action: "sts:AssumeRole"
+                Resource: "arn:aws:iam::529344562275:role/data-acquisition-athena-prod"
+              - Effect: "Allow"
+                Action: "secretsmanager:GetSecretValue"
+                Resource: "arn:aws:secretsmanager:ap-southeast-2:971356129762:secret:seek/s2sauth/aips-cq-requirements-enrichment-pipeline*"
+      Path: "/"
+
+  EMRInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: CQRequirementsEnrichmentPipelineEmrEc2Role
+      Path: "/"
+      Roles:
+        - Ref: EmrEc2Role
+
+  EMRSecurityConfiguration:
+    Type: AWS::EMR::SecurityConfiguration
+    Properties:
+      Name: requirements-enrichment-pipeline-emr-securityconfiguration
+      SecurityConfiguration:
+        AuthorizationConfiguration:
+          EmrFsConfiguration:
+            RoleMappings:
+              -
+                Role: "arn:aws:iam::529344562275:role/data-acquisition-athena-prod"
+                IdentifierType: Prefix
+                Identifiers:
+                  - "s3://seek-dataplatform-prod/"
