@@ -6,17 +6,6 @@ const S3Client = require('./s3_client')
 const EmrSparkStep = require('./emr_spark_step')
 const {emrClusterConfig} = require('./emr_config')
 
-// class Config {
-//   constructor() {
-//     this.version     = "manual"
-//     this.packagePath = `scala-2.12/requirements-enrichment-pipeline-assembly-1.0.jar`
-//     this.bucketName  = 'aips-cq-requirements-enrichment-pipeline-deployments-prod'
-//     this.deployPackageName = `requirements-enrichment-pipeline-assembly-${this.version}.jar`
-
-//   }
-// }
-
-
 class EmrRunner {
   constructor(config){
     this.config = config
@@ -59,11 +48,16 @@ class EmrRunner {
 
   startCluster(steps=[]) {
     return this.emrClient.startCluster(this.config.cluster)
-      .then(cluster_id => this.emrClient.waitForCluster(cluster_id))
+      .then(cluster_id => this.emrClient.waitForClusterStarted(cluster_id))
   }
   
   terminateCluster(cluster_id) {
     return this.emrClient.terminateCluster(cluster_id)
+      .then(cluster_id => this.emrClient.waitForCluster(cluster_id))
+  }
+
+  getClusterByName() {
+    return this.emrClient.getClusterByName(this.config.cluster.Name).then(c => c.id)
   }
 
   run() {
@@ -84,9 +78,9 @@ class EmrRunner {
       .then(({clusterId, s3Package}) => this.emrClient.waitForCluster(clusterId))
   }
 
-  addStep() {
+  addStep(clusterId) {
     return Bluebird.props({
-      clusterId: this.emrClient.getClusterByName(this.config.cluster.Name).then(c => c.id),
+      clusterId: clusterId || this.getClusterByName(),
       s3Package: this.package()
         .then(() => this.uploadPackage())
     })

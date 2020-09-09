@@ -1,16 +1,16 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
-
 const lodash = require('lodash');
 const Mustache = require('mustache');
 
+const logger = require('./logger');
 const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
 
 
 class Config {
-  constructor(settingsPath, configPath) {
-    this.settingsPath = settingsPath
+  constructor(configPath, settingsPath) {
     this.configPath = configPath
+    this.settingsPath = settingsPath
   }
 
   load() {
@@ -19,23 +19,32 @@ class Config {
       EmrHadoopDebuggingStep: JSON.stringify(new EmrHadoopDebuggingStep().get(), null, '  '),
     }
     
-    const settingsTemplate = fs.readFileSync(this.settingsPath, 'utf8')
-    const settingsBody = this.renderTemplate(settingsTemplate, defaultSettings)
-    this.log(settingsBody)
-    const settingsDoc = this.loadYaml(settingsBody)
+    const allSettings = this.loadSettingsFiles(this.settingsPath, defaultSettings)
+    logger.debug(`Loaded settings: \n${JSON.stringify(allSettings, null, '  ')}`);
     
     const configTemplate = fs.readFileSync(this.configPath, 'utf8')
-    const allSettings = {...defaultSettings, Values: settingsDoc}
-    this.log(allSettings);
-
-    const configBody = this.renderTemplate(configTemplate, allSettings)
+    const configBody = this.renderTemplate(configTemplate, {...defaultSettings, Values: allSettings})
     const configDoc = this.loadYaml(configBody)
 
     // merge tags
     configDoc.cluster.Tags = [...(configDoc.cluster.Tags || []), ...this.loadStackTags(configDoc.stackTags)]
-    this.log(configDoc);
+    logger.debug(`Loaded config file: \n${JSON.stringify(configDoc, null, '  ')}`);
 
     return configDoc
+  }
+
+  loadSettingsFiles(settingsPath, defaultSettings) {
+    var settings = {}
+    settingsPath.forEach(path => {
+      logger.debug(`Loaded settings file: ${path}`);
+      const settingsTemplate = fs.readFileSync(path, 'utf8')
+      const settingsBody = this.renderTemplate(settingsTemplate, {...defaultSettings, Values: settings})
+      const settingsDoc = this.loadYaml(settingsBody)
+      
+      settings = {...settings, ...settingsDoc}
+    })
+
+    return settings
   }
 
   loadStackTags(tags) {

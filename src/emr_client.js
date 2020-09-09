@@ -2,13 +2,13 @@ const Bluebird = require('bluebird');
 const promiseRetry = require('promise-retry');
  
 const AWS = require("./aws");
-const Logger = require("./logger");
+const logger = require("./logger");
 const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
 
 class EmrClient {
   constructor() {
     this.emr = new AWS.EMR()
-    this.logger = new Logger()
+    this.logger = logger
   }
 
   startCluster(clusterConfig) {
@@ -26,7 +26,12 @@ class EmrClient {
       .catch(e => Promise.reject(new Error(`Failed to terminate EMR cluster ${cluster_id}, caused by ${e}`)));
   }
 
-  waitForCluster(cluster_id) {
+  waitForClusterStarted(cluster_id) {
+    return this.waitForCluster(cluster_id, ['WAITING'])
+      .tap(() => this.logger.info(`Cluster ${cluster_id} started`))
+  }
+
+  waitForCluster(cluster_id, waitingState=[]) {
     var params = {
       ClusterId: cluster_id
     };
@@ -46,8 +51,7 @@ class EmrClient {
               return cluster_id
             }
 
-            if (["WAITING"].indexOf(r.Cluster.Status.State) >=0 ){
-              this.logger.info(`Cluster ${cluster_id} started`)
+            if (waitingState.indexOf(r.Cluster.Status.State) >=0 ){
               return cluster_id
             }
 
@@ -65,7 +69,7 @@ class EmrClient {
 
   getClusterByName(name) {
     var params = {
-      ClusterStates: ['RUNNING', 'WAITING', 'TERMINATED']
+      ClusterStates: ['RUNNING', 'WAITING']
     };
     this.logger.info(`Looking up EMR cluster with name "${name}"`)
     return this.emr.listClusters(params).promise()
