@@ -1,38 +1,27 @@
 
-
 class EmrSparkStep{
-  constructor(name, mainClass, bucketName, packageName, driverJavaOption){
-    this.config = {
-      name : name,
-      type:"Spark",
-      actionOnFailure : "CANCEL_AND_WAIT",
-      packageS3Path : `s3://${bucketName}/${packageName}`,
-      spark_args : [
-        "prod"
-      ],
-      master : "yarn",
-      spark_configs: "spark.yarn.maxAppAttempts=5",
-      driverJavaOptions: driverJavaOption,
-      mainClass: mainClass,
-      deployMode: 'client',
-    }
+  constructor(stepConfig){
+    this.stepConfig = stepConfig
   }
 
   get(){
+    const sparkConfigs = (this.stepConfig.SparkConfigs || []).map(conf => ["--conf", conf]).flat()
+    const javaConfigs = (this.stepConfig.DriverJavaOptions || []).map(o => ["--driver-java-options", o]).flat()
+
     return {
-        Name: this.config.name,
-        ActionOnFailure: this.config.actionOnFailure,
+        Name: this.stepConfig.Name,
+        ActionOnFailure: this.stepConfig.ActionOnFailure,
         HadoopJarStep: {
           Jar: "command-runner.jar",
           Args: [
             "spark-submit",
-            "--conf", this.config.spark_configs,
-            "--driver-java-options", this.config.driverJavaOptions,
-            "--class", this.config.mainClass,
-            "--deploy-mode", this.config.deployMode,
-            "--master", this.config.master,
-            this.config.packageS3Path,
-            ...this.config.spark_args
+            ...sparkConfigs,
+            ...javaConfigs,
+            "--class", this.stepConfig.MainClass,
+            "--deploy-mode", this.stepConfig.DeployMode,
+            "--master", this.stepConfig.Master,
+            this.stepConfig.S3PackagePath,
+            ...this.stepConfig.Args
           ],
         }
       }

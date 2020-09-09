@@ -34,7 +34,7 @@ class S3Client {
       Body: dataBody
     };
     return this.s3.putObject(putObjectParams).promise()
-      .then(() => console.log(`Put s3 object to ${destinationBucket}/${destKey}`))
+      // .then(() => console.log(`Put s3 object to ${destinationBucket}/${destKey}`))
       .catch(e => Promise.reject(new Error(`Failed to put s3 object to ${destinationBucket}/${destKey}, caused by ${e}`)));
   }
 
@@ -47,7 +47,7 @@ class S3Client {
       Body: sourceStream
     };
     return this.s3.upload(putObjectParams).promise()
-      .then(() => console.log(`Uploaded ${filePath} to ${destinationBucket}/${destKey}`))
+      // .then(() => console.log(`Uploaded ${filePath} to ${destinationBucket}/${destKey}`))
       .catch(e => Promise.reject(new Error(`Failed to upload s3 object to ${destinationBucket}/${destKey}, caused by ${e}`)));
   }
 
@@ -58,7 +58,7 @@ class S3Client {
       Prefix: prefix
     };
     return this.s3.listObjectsV2(params).promise()
-      .tap(() => console.log(`List s3 objects ${bucket}/${prefix}`))
+      // .tap(() => console.log(`List s3 objects ${bucket}/${prefix}`))
       .catch(e => Promise.reject(new Error(`Failed to list s3 objects with prefix ${prefix} in bucket ${bucket}, caused by ${e}`)));
   }
 

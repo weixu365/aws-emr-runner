@@ -26,23 +26,28 @@ class EmrClient {
       .catch(e => Promise.reject(new Error(`Failed to terminate EMR cluster ${cluster_id}, caused by ${e}`)));
   }
 
-  waitForClusterRunning(cluster_id) {
+  waitForCluster(cluster_id) {
     var params = {
       ClusterId: cluster_id
     };
 
-    return promiseRetry(function (retry, number) {
+    return promiseRetry((retry, number) => {
         this.logger.info(`Checking cluster ${cluster_id} status(${number}) ...`);
         
         return this.emr.describeCluster(params).promise()
           .then(r => {
-            if (["TERMINATING", "TERMINATED", "TERMINATED_WITH_ERRORS"].indexOf(r.Cluster.Status.State) >=0 ) {
-              this.logger.info(`  Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
+            if (["TERMINATED"].indexOf(r.Cluster.Status.State) >=0 ) {
+              this.logger.info(`Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
+              return cluster_id
+            }
+
+            if (["TERMINATED_WITH_ERRORS"].indexOf(r.Cluster.Status.State) >=0 ) {
+              this.logger.info(`Cluster ${cluster_id} terminated with errors(${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
               return cluster_id
             }
 
             if (["WAITING"].indexOf(r.Cluster.Status.State) >=0 ){
-              this.logger.info(`  Cluster ${cluster_id} started`)
+              this.logger.info(`Cluster ${cluster_id} started`)
               return cluster_id
             }
 
@@ -50,7 +55,7 @@ class EmrClient {
           })
           .catch(e => {
             if(!this.isRetryError(e)) {
-              this.logger.info(`  Failed to check cluster ${cluster_id} status(${number}): ${e}`)
+              this.logger.info(`Failed to check cluster ${cluster_id} status(${number}): ${e}`)
             }
             return retry()
           });
@@ -62,7 +67,7 @@ class EmrClient {
     var params = {
       ClusterStates: ['RUNNING', 'WAITING', 'TERMINATED']
     };
-    this.logger.info(`Looking up EMR cluster with name ${name}`)
+    this.logger.info(`Looking up EMR cluster with name "${name}"`)
     return this.emr.listClusters(params).promise()
       .then(r => r.Clusters)
       .map(c => ({id: c.Id, name: c.Name, status: c.Status.State, normalizedInstanceHours: c.NormalizedInstanceHours}))
@@ -79,7 +84,7 @@ class EmrClient {
   addSteps(cluster_id, steps) {
     var params = {
       JobFlowId: cluster_id,
-      Steps: steps.map(s => s.get())
+      Steps: steps
     };
     return this.emr.addJobFlowSteps(params).promise()
       // .tap(params => this.logger.info(JSON.stringify(params)))
@@ -97,12 +102,12 @@ class EmrClient {
       return this.emr.describeStep(params).promise()
         .then(r => {
           if (["CANCELLED", "FAILED", "INTERRUPTED"].indexOf(r.Step.Status.State) >=0 ) {
-            this.logger.info(`  step  ${step_id} failed (${number}): \n${JSON.stringify(r.Step.Status, null, '  ')}`)
+            this.logger.info(`step  ${step_id} failed (${number}): \n${JSON.stringify(r.Step.Status, null, '  ')}`)
             return r
           }
 
           if (["COMPLETED"].indexOf(r.Step.Status.State) >=0 ){
-            this.logger.info(`  Step ${step_id} completed(${number})`)
+            this.logger.info(`Step ${step_id} completed(${number})`)
             return r
           }
 
@@ -114,7 +119,7 @@ class EmrClient {
         })
         .catch(e => {
           if(!this.isRetryError(e)) {
-            this.logger.info(`  Failed to check step ${step_id} status(${number}): ${e}`)
+            this.logger.info(`Failed to check step ${step_id} status(${number}): ${e}`)
           }
           return retry()
         })

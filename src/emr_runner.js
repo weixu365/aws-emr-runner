@@ -25,47 +25,74 @@ class EmrRunner {
   }
 
   package() {
-    console.log("Packaging")
     this.config.deploy.package.forEach(cmd => {
-      console.log(`Running ${cmd}`)
+      console.log(`Running command: "${cmd}"`)
       child_process.execSync(cmd, { stdio: [process.stdin, process.stdout, process.stderr] })
     })
+    return Bluebird.resolve()
   }
 
   uploadPackage() {
+    console.log(`Uploading ${this.config.deploy.packagePath} to s3://${this.config.deploy.bucketName}/${this.config.deploy.deployPackageName}`)
     return this.s3Client.uploadFile(this.config.deploy.packagePath, this.config.deploy.bucketName, this.config.deploy.deployPackageName)
   }
 
   loadSteps(){
-    return [new EmrSparkStep("Enrich profiles", "seek.aips.enrichment.Main", this.config.deploy.bucketName, this.config.deploy.deployPackageName, '-Dreporting.type=incremental')]
+    const s3PackagePath = `s3://${this.config.deploy.bucketName}/${this.config.deploy.deployPackageName}`
+    return this.config.steps.map(stepConfig => {
+      if(stepConfig.Type.toLowerCase() === 'spark') {
+        return new EmrSparkStep({S3PackagePath: s3PackagePath, ...stepConfig}).get()
+      }
+
+      throw new Error(`Not support EMR Step type: ${stepConfig.Type}`)
+    })
   }
 
-  submitSteps(steps, wait=true){
-    return this.emrClient.getClusterByName(this.config.cluster.Name)
-      .then(cluster => this.emrClient.addSteps(cluster.id, steps))
+  submitSteps(clusterId, steps){
+    return this.emrClient.addSteps(clusterId, steps)
+      .tap(() => console.log(`Added steps to cluster ${clusterId}, steps: \n${JSON.stringify(steps, null, '  ')}`))
   }
 
   waitStep(clusterId, stepId) {
     return this.emrClient.waitStep(clusterId, stepId)
   }
 
-  startCluster() {
+  startCluster(steps=[]) {
     return this.emrClient.startCluster(this.config.cluster)
-      .then(cluster_id => this.emrClient.waitForClusterRunning(cluster_id))
+      .then(cluster_id => this.emrClient.waitForCluster(cluster_id))
   }
   
   terminateCluster(cluster_id) {
     return this.emrClient.terminateCluster(cluster_id)
   }
 
-  runStep() {
-    return Bluebird.resolve()
-      // .then(() => this.package())
-      // .tap(() => console.log("Packaged successfully"))
-      // .then(() => this.uploadPackage())
-      // .tap(() => console.log("Uploaded package to S3 bucket"))
-      .then(() => this.submitSteps(this.loadSteps()))
-      .tap(({clusterId, stepIds}) => console.log(`Submitted step to EMR cluster ${clusterId}, start to wait for steps to be finished: ${JSON.stringify(stepIds)}`))
+  run() {
+    const steps = this.loadSteps()
+    this.config.cluster.Steps = [...(this.config.cluster.Steps), ...steps]
+    this.config.cluster.Instances.KeepJobFlowAliveWhenNoSteps = false
+
+    return Bluebird.props({
+      clusterId: this.emrClient.startCluster(this.config.cluster),
+      s3Package: this.package()
+        .then(() => this.uploadPackage())
+    })
+      // .tap(({ clusterId, s3Package}) => console.log(`Submitting EMR Steps to cluster: ${clusterId}`))
+      // .then(({clusterId, s3Package}) => this.submitSteps(clusterId, this.loadSteps()))
+      // .tap(({clusterId, stepIds}) => console.log(`Start to wait for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
+      // .then(({clusterId, stepIds}) => Bluebird.all(stepIds.map(stepId => this.waitStep(clusterId, stepId))))
+      .tap(({clusterId, s3Package}) => console.log(`Waiting for EMR cluster to be completed ${clusterId}: \n${JSON.stringify(steps, null, '  ')}`))
+      .then(({clusterId, s3Package}) => this.emrClient.waitForCluster(clusterId))
+  }
+
+  addStep() {
+    return Bluebird.props({
+      clusterId: this.emrClient.getClusterByName(this.config.cluster.Name).then(c => c.id),
+      s3Package: this.package()
+        .then(() => this.uploadPackage())
+    })
+      .tap(({clusterId, s3Package}) => console.log(`Submitting EMR Steps to cluster: ${clusterId}`))
+      .then(({clusterId, s3Package}) => this.submitSteps(clusterId, this.loadSteps()))
+      .tap(({clusterId, stepIds}) => console.log(`Start to wait for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
       .then(({clusterId, stepIds}) => Bluebird.all(stepIds.map(stepId => this.waitStep(clusterId, stepId))))
   }
 }

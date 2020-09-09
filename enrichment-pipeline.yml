@@ -15,6 +15,20 @@ stackTags:
   'seek:data:types:restricted': "job-ads ontology"
   'Name': {{Values.name}}
 
+steps:
+  - Type: Spark
+    Name: Enrich Profiles
+    ActionOnFailure: CANCEL_AND_WAIT
+    SparkConfigs:
+      - spark.yarn.maxAppAttempts=5
+    DriverJavaOptions:
+      - -Dreporting.type=incremental
+    MainClass: seek.aips.enrichment.Main
+    DeployMode: client
+    Master: yarn
+    Args:
+      - prod
+
 cluster:
   EbsRootVolumeSize: '10'
   ScaleDownBehavior: 'TERMINATE_AT_TASK_COMPLETION'

@@ -7,7 +7,8 @@ const config = new Config('enrichment-pipeline.settings.yml', 'enrichment-pipeli
 // new EmrRunner(config.load()).startCluster()
 // .then(cluster_id => console.log(`Cluster ${cluster_id} started`))
 
-new EmrRunner(config.load()).runStep()
+// new EmrRunner(config.load()).addStep()
+new EmrRunner(config.load()).run()
 
 // var emrClient = new EmrClient()
 
