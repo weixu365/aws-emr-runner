@@ -1,9 +1,11 @@
 const fs = require("fs");
 const AWS = require("./aws");
+const logger = require("./logger");
 
 class S3Client {
   constructor() {
     this.s3 = new AWS.S3();
+    this.logger = logger
   }
 
   applyTag(bucket, key, tags) {
@@ -13,7 +15,7 @@ class S3Client {
       Tagging: tags
      };
      return this.s3.putObjectTagging(params).promise()
-      .then(() => console.log(`Applied tags to s3 object ${bucket}/${key}`))
+      .then(() => this.logger.info(`Applied tags to s3 object ${bucket}/${key}`))
       .catch(e => Promise.reject(new Error(`Failed to apply tags to s3 object ${bucket}${key}, caused by ${e}`)));
   }  
   
@@ -34,7 +36,7 @@ class S3Client {
       Body: dataBody
     };
     return this.s3.putObject(putObjectParams).promise()
-      // .then(() => console.log(`Put s3 object to ${destinationBucket}/${destKey}`))
+      // .then(() => this.logger.info(`Put s3 object to ${destinationBucket}/${destKey}`))
       .catch(e => Promise.reject(new Error(`Failed to put s3 object to ${destinationBucket}/${destKey}, caused by ${e}`)));
   }
 
@@ -47,7 +49,7 @@ class S3Client {
       Body: sourceStream
     };
     return this.s3.upload(putObjectParams).promise()
-      // .then(() => console.log(`Uploaded ${filePath} to ${destinationBucket}/${destKey}`))
+      // .then(() => this.logger.info(`Uploaded ${filePath} to ${destinationBucket}/${destKey}`))
       .catch(e => Promise.reject(new Error(`Failed to upload s3 object to ${destinationBucket}/${destKey}, caused by ${e}`)));
   }
 
@@ -58,7 +60,7 @@ class S3Client {
       Prefix: prefix
     };
     return this.s3.listObjectsV2(params).promise()
-      // .tap(() => console.log(`List s3 objects ${bucket}/${prefix}`))
+      // .tap(() => this.logger.info(`List s3 objects ${bucket}/${prefix}`))
       .catch(e => Promise.reject(new Error(`Failed to list s3 objects with prefix ${prefix} in bucket ${bucket}, caused by ${e}`)));
   }
 

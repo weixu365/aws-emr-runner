@@ -4,6 +4,7 @@ const Bluebird = require('bluebird');
 const EmrClient = require('./emr_client')
 const S3Client = require('./s3_client')
 const EmrSparkStep = require('./emr_spark_step')
+const logger = require("./logger");
 const {emrClusterConfig} = require('./emr_config')
 
 class EmrRunner {
@@ -11,18 +12,23 @@ class EmrRunner {
     this.config = config
     this.emrClient = new EmrClient()
     this.s3Client = new S3Client()
+    this.logger = logger
   }
 
   package() {
     this.config.deploy.package.forEach(cmd => {
-      console.log(`Running command: "${cmd}"`)
+      this.logger.info(`Running command: "${cmd}"`)
       child_process.execSync(cmd, { stdio: [process.stdin, process.stdout, process.stderr] })
     })
     return Bluebird.resolve()
   }
 
   uploadPackage() {
-    console.log(`Uploading ${this.config.deploy.packagePath} to s3://${this.config.deploy.bucketName}/${this.config.deploy.deployPackageName}`)
+    const fileStats = fs.statSync(filePath)
+    const fileSizeInBytes = fileStats["size"]
+    const fileSizeInMB = fileSizeInBytes / 1024 * 1024
+    
+    this.logger.info(`Uploading ${this.config.deploy.packagePath} (${fileSizeInMB}MB) to s3://${this.config.deploy.bucketName}/${this.config.deploy.deployPackageName}`)
     return this.s3Client.uploadFile(this.config.deploy.packagePath, this.config.deploy.bucketName, this.config.deploy.deployPackageName)
   }
 
@@ -39,7 +45,7 @@ class EmrRunner {
 
   submitSteps(clusterId, steps){
     return this.emrClient.addSteps(clusterId, steps)
-      .tap(() => console.log(`Added steps to cluster ${clusterId}, steps: \n${JSON.stringify(steps, null, '  ')}`))
+      .tap(() => this.logger.info(`Added steps to cluster ${clusterId}, steps: \n${JSON.stringify(steps, null, '  ')}`))
   }
 
   waitStep(clusterId, stepId) {
@@ -70,11 +76,11 @@ class EmrRunner {
       s3Package: this.package()
         .then(() => this.uploadPackage())
     })
-      // .tap(({ clusterId, s3Package}) => console.log(`Submitting EMR Steps to cluster: ${clusterId}`))
+      // .tap(({ clusterId, s3Package}) => this.logger.info(`Submitting EMR Steps to cluster: ${clusterId}`))
       // .then(({clusterId, s3Package}) => this.submitSteps(clusterId, this.loadSteps()))
-      // .tap(({clusterId, stepIds}) => console.log(`Start to wait for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
+      // .tap(({clusterId, stepIds}) => this.logger.info(`Start to wait for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
       // .then(({clusterId, stepIds}) => Bluebird.all(stepIds.map(stepId => this.waitStep(clusterId, stepId))))
-      .tap(({clusterId, s3Package}) => console.log(`Waiting for EMR cluster to be completed ${clusterId}: \n${JSON.stringify(steps, null, '  ')}`))
+      .tap(({clusterId, s3Package}) => this.logger.info(`Waiting for EMR cluster to be completed ${clusterId}: \n${JSON.stringify(steps, null, '  ')}`))
       .then(({clusterId, s3Package}) => this.emrClient.waitForCluster(clusterId))
   }
 
@@ -84,9 +90,9 @@ class EmrRunner {
       s3Package: this.package()
         .then(() => this.uploadPackage())
     })
-      .tap(({clusterId, s3Package}) => console.log(`Submitting EMR Steps to cluster: ${clusterId}`))
+      .tap(({clusterId, s3Package}) => this.logger.info(`Submitting EMR Steps to cluster: ${clusterId}`))
       .then(({clusterId, s3Package}) => this.submitSteps(clusterId, this.loadSteps()))
-      .tap(({clusterId, stepIds}) => console.log(`Start to wait for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
+      .tap(({clusterId, stepIds}) => this.logger.info(`Start to wait for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
       .then(({clusterId, stepIds}) => Bluebird.all(stepIds.map(stepId => this.waitStep(clusterId, stepId))))
   }
 }
