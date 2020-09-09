@@ -1,4 +1,5 @@
 deploy:
+  region: "ap-southeast-2"
   package:
     - make package
   packagePath: "target/scala-2.12/requirements-enrichment-pipeline-assembly-{{Values.assembly_version}}.jar"
