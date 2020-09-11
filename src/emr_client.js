@@ -7,12 +7,12 @@ const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
 
 class EmrClient {
   constructor(config) {
-    this.emr = new AWS.EMR({region: config.region})
+    this.emr = new AWS.EMR({region: config.deploy.region})
     this.logger = logger
   }
 
   startCluster(clusterConfig) {
-    this.logger.info(`Starting cluster using config: ${JSON.stringify(clusterConfig, null, '  ')}`)
+    this.logger.debug(`Starting cluster using config: ${JSON.stringify(clusterConfig, null, '  ')}`)
     return this.emr.runJobFlow(clusterConfig).promise()
       .then(r => r.JobFlowId)
   }
@@ -37,10 +37,11 @@ class EmrClient {
     };
 
     return promiseRetry((retry, number) => {
-        this.logger.info(`Checking cluster ${cluster_id} status(${number}) ...`);
         
         return this.emr.describeCluster(params).promise()
           .then(r => {
+            this.logger.info(`Checking cluster ${cluster_id} status(${number}): ${r.Cluster.Status.State}`);
+
             if (["TERMINATED"].indexOf(r.Cluster.Status.State) >=0 ) {
               this.logger.info(`Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
               return cluster_id

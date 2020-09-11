@@ -1,5 +1,6 @@
 
 const child_process = require('child_process')
+const fs = require('fs')
 const Bluebird = require('bluebird');
 const EmrClient = require('./emr_client')
 const S3Client = require('./s3_client')
@@ -24,11 +25,11 @@ class EmrRunner {
   }
 
   uploadPackage() {
-    const fileStats = fs.statSync(filePath)
+    const fileStats = fs.statSync(this.config.deploy.packagePath)
     const fileSizeInBytes = fileStats["size"]
-    const fileSizeInMB = fileSizeInBytes / 1024 * 1024
+    const fileSizeInMB = fileSizeInBytes / 1024 / 1024
     
-    this.logger.info(`Uploading ${this.config.deploy.packagePath} (${fileSizeInMB}MB) to s3://${this.config.deploy.bucketName}/${this.config.deploy.deployPackageName}`)
+    this.logger.info(`Uploading ${this.config.deploy.packagePath} (${fileSizeInMB.toFixed(2)}MB) to s3://${this.config.deploy.bucketName}/${this.config.deploy.deployPackageName}`)
     return this.s3Client.uploadFile(this.config.deploy.packagePath, this.config.deploy.bucketName, this.config.deploy.deployPackageName)
   }
 

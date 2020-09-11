@@ -1,5 +1,6 @@
 const Bluebird = require('bluebird');
 const { Command } = require('commander');
+const isundefined = require('lodash.isundefined');
 const Config = require('./config')
 const EmrRunner = require('./emr_runner')
 const EmrClient = require('./emr_client')
@@ -71,11 +72,15 @@ program
 
 program
   .command('run')
-  .option('-t --auto-terminate <auto terminate>',  'Auto terminate cluster after steps completed')
+  .option('--keep-cluster',  'Keep cluster running after steps completed', false)
+  .option('--no-keep-cluster',  'Do not keep cluster running after steps completed')
   .description('Start a new EMR cluster and run steps')
   .action((cmd) => {
     logger.info('Run emr cluster and step');
-    logger.info(`autoTerminate=${cmd.autoTerminate}`);
+    
+    const config = getConfig().load()
+    config.cluster.Instances.KeepJobFlowAliveWhenNoSteps = cmd.keepCluster
+    logger.info(`Keep cluster after finish: ${config.cluster.Instances.KeepJobFlowAliveWhenNoSteps}`);
     
     return new EmrRunner(getConfig().load()).run()
   });

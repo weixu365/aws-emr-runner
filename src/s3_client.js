@@ -4,7 +4,7 @@ const logger = require("./logger");
 
 class S3Client {
   constructor(config) {
-    this.s3 = new AWS.S3({region: config.region})
+    this.s3 = new AWS.S3({region: config.deploy.region})
     this.logger = logger
   }
 
