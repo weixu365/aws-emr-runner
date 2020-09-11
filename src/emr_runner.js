@@ -10,8 +10,8 @@ const {emrClusterConfig} = require('./emr_config')
 class EmrRunner {
   constructor(config){
     this.config = config
-    this.emrClient = new EmrClient()
-    this.s3Client = new S3Client()
+    this.emrClient = new EmrClient(config)
+    this.s3Client = new S3Client(config)
     this.logger = logger
   }
 

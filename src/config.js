@@ -1,6 +1,10 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
-const lodash = require('lodash');
+const lodash = {
+  get: require('lodash.get'),
+  toPairs: require('lodash.topairs'),
+  isNil: require('lodash.isnil'),
+};
 const Mustache = require('mustache');
 
 const logger = require('./logger');

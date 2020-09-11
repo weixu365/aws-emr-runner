@@ -6,8 +6,8 @@ const logger = require("./logger");
 const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
 
 class EmrClient {
-  constructor() {
-    this.emr = new AWS.EMR()
+  constructor(config) {
+    this.emr = new AWS.EMR({region: config.region})
     this.logger = logger
   }
 
