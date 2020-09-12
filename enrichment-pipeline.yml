@@ -3,7 +3,7 @@ deploy:
   package:
     - make package
   packagePath: "target/scala-2.12/requirements-enrichment-pipeline-assembly-{{Values.assembly_version}}.jar"
-  bucketName: cq-requirements-enrichment-pipeline-deployments-{{Values.environment}}
+  bucketName: {{Resources.DeploymentsBucket.PhysicalResourceId}}
   deployPackageName: requirements-enrichment-pipeline-assembly-{{Values.version}}.jar
 
 # stack tags applies to EMR cluster and resource stack
@@ -76,11 +76,11 @@ cluster:
                 VolumeType: "gp2"
               VolumesPerInstance: 1
         Name: "Master - 1"
-  JobFlowRole: 'CQRequirementsEnrichmentPipelineEmrEc2Role'
+  JobFlowRole: '{{Resources.EMRInstanceProfile.PhysicalResourceId}}'
   LogUri: s3n://aws-logs-{{Values.aws_account_id}}-ap-southeast-2/elasticmapreduce/
   Name: {{Values.name}}
   ReleaseLabel: 'emr-6.0.0'
-  SecurityConfiguration: 'requirements-enrichment-pipeline-emr-securityconfiguration'
+  SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
   ServiceRole: 'EMR_DefaultRole'
   Steps:
     - {{EmrHadoopDebuggingStep}}

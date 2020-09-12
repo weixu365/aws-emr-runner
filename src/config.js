@@ -2,6 +2,8 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const lodash = {
   get: require('lodash.get'),
+  set: require('lodash.set'),
+  forEach: require('lodash.foreach'),
   toPairs: require('lodash.topairs'),
   isNil: require('lodash.isnil'),
 };
@@ -15,26 +17,54 @@ class Config {
   constructor(configPath, settingsPath) {
     this.configPath = configPath
     this.settingsPath = settingsPath
+    this.logger = logger
+    this.overrideSettings = {}
+
+    this.resources = null
+    this.config = null
   }
 
   load() {
     const defaultSettings = {
       env: {...process.env, BUILD_NUMBER: 'manual', AUTO_TERMINATE: 'false'},
       EmrHadoopDebuggingStep: JSON.stringify(new EmrHadoopDebuggingStep().get(), null, '  '),
+      ...(this.resources && { Resources: this.resources })
     }
-    
-    const allSettings = this.loadSettingsFiles(this.settingsPath, defaultSettings)
-    logger.debug(`Loaded settings: \n${JSON.stringify(allSettings, null, '  ')}`);
-    
+
+    const fileSettings = this.loadSettingsFiles(this.settingsPath, defaultSettings)
+    logger.debug(`Loaded settings: \n${JSON.stringify(fileSettings, null, '  ')}`);
+
     const configTemplate = fs.readFileSync(this.configPath, 'utf8')
-    const configBody = this.renderTemplate(configTemplate, {...defaultSettings, Values: allSettings})
+    const configBody = this.renderTemplate(configTemplate, {...defaultSettings, Values: fileSettings})
     const configDoc = this.loadYaml(configBody)
 
     // merge tags
     configDoc.cluster.Tags = [...(configDoc.cluster.Tags || []), ...this.loadStackTags(configDoc.stackTags)]
     logger.debug(`Loaded config file: \n${JSON.stringify(configDoc, null, '  ')}`);
 
-    return configDoc
+    // merge override configs
+    lodash.forEach(this.overrideSettings, (value, key) => lodash.set(configDoc, key, value))
+
+    this.config = configDoc
+
+    return this
+  }
+
+  get() {
+    return this.config
+  }
+
+  getResourceStackName() {
+    return 'requirements-enrichment-pipeline-resources-prod'
+    // return `${this.config.cluster.Name}-resources`
+  }
+
+  reloadWithResources(resources) {
+    this.resources = resources
+    this.load()
+    logger.debug(`Loaded config file with resources: \n${JSON.stringify(this.config, null, '  ')}`);
+    
+    return this
   }
 
   loadSettingsFiles(settingsPath, defaultSettings) {
@@ -49,6 +79,16 @@ class Config {
     })
 
     return settings
+  }
+
+  addOverrideConfigs(name, value) {
+    this.overrideSettings[name] = value
+    return this
+  }
+
+  addSteps(steps) {
+    this.config.cluster.Steps = [...(this.config.cluster.Steps), ...steps]
+    return this
   }
 
   loadStackTags(tags) {
@@ -76,10 +116,12 @@ class Config {
     const variables = spans
       .filter(span => span[0] == 'name')
       .filter(span => lodash.isNil(lodash.get(values, span[1])))
+      .filter(span => !lodash.isNil(this.resources) || (lodash.isNil(this.resources) && !span[1].startsWith("Resources.")))
       .map(span => span[1])
 
     if(variables.length > 0) {
-      console.log(variables)
+      this.logger.error("Variables not found:")
+      variables.forEach(v => this.logger.error(`- ${v}`))
 
       throw new Error(`Variable not found: ${variables}`)
     }
