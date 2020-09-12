@@ -78,11 +78,11 @@ program
   .action((cmd) => {
     logger.info('Run emr cluster and step');
     
-    const config = getConfig().load()
+    const config = getConfig()
       .addOverrideConfigs('cluster.Instances.KeepJobFlowAliveWhenNoSteps', cmd.keepCluster)
     logger.info(`Keep cluster after finish: ${cmd.keepCluster}`);
     
-    return new EmrRunner(getConfig().load()).run()
+    return new EmrRunner(config.load()).run()
   });
 
 program.parse()

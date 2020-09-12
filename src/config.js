@@ -40,12 +40,12 @@ class Config {
 
     // merge tags
     configDoc.cluster.Tags = [...(configDoc.cluster.Tags || []), ...this.loadStackTags(configDoc.stackTags)]
-    logger.debug(`Loaded config file: \n${JSON.stringify(configDoc, null, '  ')}`);
 
     // merge override configs
-    lodash.forEach(this.overrideSettings, (value, key) => lodash.set(configDoc, key, value))
+    lodash.forEach(this.overrideSettings, (value, key) => {lodash.set(configDoc, key, value); console.log(`override settings: ${key}=${value}`)})
 
     this.config = configDoc
+    logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`);
 
     return this
   }
