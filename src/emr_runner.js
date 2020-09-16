@@ -1,6 +1,7 @@
 
 const child_process = require('child_process')
 const fs = require('fs')
+const lodash = require('lodash')
 const Bluebird = require('bluebird');
 const EmrClient = require('./emr_client')
 const S3Client = require('./s3_client')
@@ -73,6 +74,15 @@ class EmrRunner {
 
   getClusterByName() {
     return this.emrClient.getClusterByName(this.config.get().cluster.Name).then(c => c.id)
+  }
+
+  deployResources() {
+    const fileConfig = this.config.load().get()
+    const resources = fileConfig.resources
+    const stackName = this.config.getResourceStackName()
+    const tags = this.config.loadStackTags(fileConfig.stackTags)
+    const params = lodash.get(fileConfig, 'deploy.resourceStack.params')
+    return this.cloudformationClient.deploy(stackName, resources, params, tags)
   }
 
   loadResources() {

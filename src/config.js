@@ -1,14 +1,7 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
-const lodash = {
-  get: require('lodash.get'),
-  set: require('lodash.set'),
-  forEach: require('lodash.foreach'),
-  toPairs: require('lodash.topairs'),
-  isNil: require('lodash.isnil'),
-};
+const lodash = require('lodash');
 const Mustache = require('mustache');
-
 const logger = require('./logger');
 const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
 
@@ -32,7 +25,7 @@ class Config {
     }
 
     const fileSettings = this.loadSettingsFiles(this.settingsPath, defaultSettings)
-    logger.debug(`Loaded settings: \n${JSON.stringify(fileSettings, null, '  ')}`);
+    logger.debug(`Loaded settings: \n${JSON.stringify(fileSettings, null, '  ')}`)
 
     const configTemplate = fs.readFileSync(this.configPath, 'utf8')
     const configBody = this.renderTemplate(configTemplate, {...defaultSettings, Values: fileSettings})
@@ -42,21 +35,36 @@ class Config {
     configDoc.cluster.Tags = [...(configDoc.cluster.Tags || []), ...this.loadStackTags(configDoc.stackTags)]
 
     // merge override configs
-    lodash.forEach(this.overrideSettings, (value, key) => {lodash.set(configDoc, key, value); console.log(`override settings: ${key}=${value}`)})
+    lodash.forEach(this.overrideSettings, (value, key) => {
+      lodash.set(configDoc, key, value)
+      console.log(`override settings: ${key}=${value}`)
+    })
 
     this.config = configDoc
-    logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`);
+    this.settings = fileSettings
+    logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`)
 
     return this
   }
 
   get() {
+    if(!this.config) {
+      this.load()
+    }
+
     return this.config
   }
 
+  getSetting(name) {
+    return lodash.get(this.settings, name)
+  }
+
+  getName() {
+    return this.get().name
+  }
+
   getResourceStackName() {
-    return 'requirements-enrichment-pipeline-resources-prod'
-    // return `${this.config.cluster.Name}-resources`
+    return `${this.getName()}-resources-${this.getSetting('environment')}`
   }
 
   reloadWithResources(resources) {

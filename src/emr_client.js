@@ -64,7 +64,7 @@ class EmrClient {
             }
             return retry()
           });
-      }, {retries: 1000, minTimeout: 5000, factor: 1})
+      }, {retries: 10000, minTimeout: 10 * 1000, factor: 1})
       .then(() => cluster_id)
   }
 
@@ -137,24 +137,3 @@ class EmrClient {
 }
 
 module.exports = EmrClient;
-
-
-// function show_step_errors() {
-//   emr_cluster_id=$1
-
-//   step_status=$(aws emr list-steps --cluster-id $emr_cluster_id | jq -r 'first( .Steps[] | select( .Status.State | contains("FAILED" ))) | .Status')
-
-//   log_file=$(echo $step_status | jq -r '.FailureDetails.LogFile')
-//   echo Showing log file from ${log_file}stderr.gz
-//   aws s3 cp ${log_file}stderr.gz - | gunzip
-// }
-
-// function show_step_stdout() {
-//   emr_cluster_id=$1
-
-//   step_id=$(aws emr list-steps --cluster-id ${emr_cluster_id} | jq -r 'first( .Steps[]) | .Id')
-
-//   log_file="s3://aws-logs-${aws_account_id}-ap-southeast-2/elasticmapreduce/${emr_cluster_id}/steps/${step_id}/stdout.gz"
-//   echo Showing log file from ${log_file}
-//   aws s3 cp ${log_file} - | gunzip
-// }

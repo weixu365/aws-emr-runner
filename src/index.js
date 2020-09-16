@@ -1,6 +1,5 @@
 const Bluebird = require('bluebird');
 const { Command } = require('commander');
-const isundefined = require('lodash.isundefined');
 const Config = require('./config')
 const EmrRunner = require('./emr_runner')
 const EmrClient = require('./emr_client')
@@ -34,9 +33,7 @@ program
   .command('resources')
   .description('Setup resources stack for running EMR steps')
   .action((cmd) => {
-    logger.info('WIP: Setting up resources stack');
-    // new EmrRunner(config.load()).startCluster()
-    //   .then(cluster_id => logger.info(`Cluster ${cluster_id} started`))
+    return new EmrRunner(getConfig().load()).deployResources()
   });
 
 program

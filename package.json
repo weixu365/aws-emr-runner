@@ -13,12 +13,7 @@
     "bluebird": "^3.7.2",
     "commander": "^6.1.0",
     "js-yaml": "^3.14.0",
-    "lodash.foreach": "^4.5.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isnil": "^4.0.0",
-    "lodash.isundefined": "^3.0.1",
-    "lodash.set": "^4.3.2",
-    "lodash.topairs": "^4.3.0",
+    "lodash": "^4.17.20",
     "mustache": "^4.0.1",
     "promise-retry": "^2.0.1",
     "winston": "^3.3.3"
