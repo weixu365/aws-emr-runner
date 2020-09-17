@@ -2,7 +2,7 @@ const fs = require("fs");
 const yaml = require('js-yaml');
 const lodash = require('lodash');
 const AWS = require("./aws");
-const logger = require("./logger");
+const logger = require("../logger");
 
 class CloudformationClient {
   constructor(region) {
@@ -84,6 +84,7 @@ class CloudformationClient {
   }
 
   listChangeSets(stackName) {
+    stackName = this.normaliseStackName(stackName)
     var params = {
       StackName: stackName
     };
@@ -93,6 +94,7 @@ class CloudformationClient {
   }
 
   deleteChangeSet(stackName, changeSetName) {
+    stackName = this.normaliseStackName(stackName)
     var params = {
       ChangeSetName: changeSetName,
       StackName: stackName
@@ -103,6 +105,7 @@ class CloudformationClient {
   }
 
   getStack(stackName) {
+    stackName = this.normaliseStackName(stackName)
     const params = {
       StackName: stackName
     };

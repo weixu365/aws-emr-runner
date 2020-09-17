@@ -8,6 +8,7 @@ const logger = require('./logger')
 const getConfig = () => new Config(program.configFile, program.settingFiles)
 
 const program = new Command()
+  .name("aws-emr-runner")
   .version('1.0.0')
   .option('-v, --verbose', 'Show verbose output')
   .option('-s, --setting-files <setting_files...>', 'setting files')

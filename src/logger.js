@@ -17,15 +17,5 @@ const logger = winston.createLogger({
     })
   ],
 });
- 
-class Logger{
-  static getLogger() {
-    return logger
-  }
-
-  info(msg) {
-    logger.info(msg)
-  }
-}
 
 module.exports = logger
