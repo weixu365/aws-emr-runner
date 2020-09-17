@@ -1,3 +1,5 @@
+name: {{Values.name}}
+
 deploy:
   region: "ap-southeast-2"
   package:
@@ -14,7 +16,10 @@ stackTags:
   'seek:data:consumers': "internal"
   'seek:data:types:internal': "anonymous derived"
   'seek:data:types:restricted': "job-ads ontology"
+  'seek:env:label': {{Values.environment}}
   'Name': {{Values.name}}
+  'service': {{Values.name}}
+  'Version': {{Values.version}}
 
 steps:
   - Type: Spark
@@ -78,7 +83,7 @@ cluster:
         Name: "Master - 1"
   JobFlowRole: '{{Resources.EMRInstanceProfile.PhysicalResourceId}}'
   LogUri: s3n://aws-logs-{{Values.aws_account_id}}-ap-southeast-2/elasticmapreduce/
-  Name: {{Values.name}}
+  Name: {{Values.name}}@{{Values.version}}
   ReleaseLabel: 'emr-6.0.0'
   SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
   ServiceRole: 'EMR_DefaultRole'

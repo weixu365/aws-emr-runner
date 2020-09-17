@@ -1,7 +1,7 @@
 {
   "name": "aws-emr-runner",
   "version": "1.0.0",
-  "description": "",
+  "description": "Create AWS EMR cluster and run emr steps, e.g. submit Spark application",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
