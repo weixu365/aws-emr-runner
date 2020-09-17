@@ -12,6 +12,9 @@ package:
 	npx pkg -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
 
+release:
+	npx semantic-release -b init
+
 docker-build:
 	docker build -f Dockerfile -t aws-emr-runner .
 
