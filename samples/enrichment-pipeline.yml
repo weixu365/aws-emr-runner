@@ -10,13 +10,6 @@ deploy:
 
 # stack tags applies to EMR cluster and resource stack
 stackTags:
-  'seek:source:url': "https://github.com/SEEK-Jobs/aips-cq-requirements-enrichment-pipeline"
-  'seek:env:production': "{{Values.is_production}}"
-  'seek:user:service:type': "integration automation"
-  'seek:data:consumers': "internal"
-  'seek:data:types:internal': "anonymous derived"
-  'seek:data:types:restricted': "job-ads ontology"
-  'seek:env:label': {{Values.environment}}
   'Name': {{Values.name}}
   'service': {{Values.name}}
   'Version': {{Values.version}}
@@ -94,7 +87,7 @@ resources:
   DeploymentsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: cq-requirements-enrichment-pipeline-deployments-{{Values.environment}}
+      BucketName: enrichment-pipeline-deployments-{{Values.environment}}
       Tags:
         - Key: "seek:data:types:internal"
           Value: "system-artefacts"
@@ -122,25 +115,7 @@ resources:
             Statement:
               - Effect: "Allow"
                 Action: "s3:ListBucket"
-                Resource: arn:aws:s3:::aips-cq-data-{{Values.environment}}
-              - Effect: "Allow"
-                Action: "s3:*"
-                Resource: arn:aws:s3:::aips-cq-data-{{Values.environment}}/*
-              - Effect: "Allow"
-                Action: "s3:ListBucket"
-                Resource: "arn:aws:s3:::seek-dataplatform-prod"
-              - Effect: "Allow"
-                Action: "s3:GetObject"
-                Resource: "arn:aws:s3:::seek-dataplatform-prod/*"
-              - Effect: "Allow"
-                Action: "kms:*"
-                Resource: "*"
-              - Effect: "Allow"
-                Action: "sts:AssumeRole"
-                Resource: "arn:aws:iam::529344562275:role/data-acquisition-athena-prod"
-              - Effect: "Allow"
-                Action: "secretsmanager:GetSecretValue"
-                Resource: "arn:aws:secretsmanager:ap-southeast-2:971356129762:secret:seek/s2sauth/aips-cq-requirements-enrichment-pipeline*"
+                Resource: arn:aws:s3:::data-{{Values.environment}}
       Path: "/"
 
   EMRInstanceProfile:
@@ -150,17 +125,3 @@ resources:
       Path: "/"
       Roles:
         - Ref: EmrEc2Role
-
-  EMRSecurityConfiguration:
-    Type: AWS::EMR::SecurityConfiguration
-    Properties:
-      Name: requirements-enrichment-pipeline-emr-securityconfiguration
-      SecurityConfiguration:
-        AuthorizationConfiguration:
-          EmrFsConfiguration:
-            RoleMappings:
-              -
-                Role: "arn:aws:iam::529344562275:role/data-acquisition-athena-prod"
-                IdentifierType: Prefix
-                Identifiers:
-                  - "s3://seek-dataplatform-prod/"
