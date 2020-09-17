@@ -2,8 +2,8 @@ const Bluebird = require('bluebird');
 const promiseRetry = require('promise-retry');
  
 const AWS = require("./aws");
-const logger = require("./logger");
-const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
+const logger = require("../logger");
+const EmrHadoopDebuggingStep = require('../steps/emr_hadoop_debugging_step');
 
 class EmrClient {
   constructor(region) {

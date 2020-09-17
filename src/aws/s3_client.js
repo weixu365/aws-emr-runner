@@ -1,6 +1,6 @@
 const fs = require("fs");
 const AWS = require("./aws");
-const logger = require("./logger");
+const logger = require("../logger");
 
 class S3Client {
   constructor(region) {

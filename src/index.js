@@ -2,7 +2,7 @@ const Bluebird = require('bluebird');
 const { Command } = require('commander');
 const Config = require('./config')
 const EmrRunner = require('./emr_runner')
-const EmrClient = require('./emr_client')
+const EmrClient = require('./aws/emr_client')
 const logger = require('./logger')
 
 const getConfig = () => new Config(program.configFile, program.settingFiles)

@@ -3,12 +3,11 @@ const child_process = require('child_process')
 const fs = require('fs')
 const lodash = require('lodash')
 const Bluebird = require('bluebird');
-const EmrClient = require('./emr_client')
-const S3Client = require('./s3_client')
-const CloudformationClient = require('./cloudformation_client')
-const EmrSparkStep = require('./emr_spark_step')
+const EmrClient = require('./aws/emr_client')
+const S3Client = require('./aws/s3_client')
+const CloudformationClient = require('./aws/cloudformation_client')
+const EmrSparkStep = require('./steps/emr_spark_step')
 const logger = require("./logger");
-const {emrClusterConfig} = require('./emr_config')
 
 class EmrRunner {
   constructor(config){

@@ -3,7 +3,7 @@ const yaml = require('js-yaml');
 const lodash = require('lodash');
 const Mustache = require('mustache');
 const logger = require('./logger');
-const EmrHadoopDebuggingStep = require('./emr_hadoop_debugging_step');
+const EmrHadoopDebuggingStep = require('./steps/emr_hadoop_debugging_step');
 
 
 class Config {

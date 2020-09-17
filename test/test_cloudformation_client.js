@@ -1,6 +1,6 @@
 const { expect } = require('chai');
 const yaml = require('js-yaml');
-const CloudformationClient = require('../src/cloudformation_client');
+const CloudformationClient = require('../src/aws/cloudformation_client');
 const Config = require('../src/config');
 
 describe('Test Cloudformation client', () => {

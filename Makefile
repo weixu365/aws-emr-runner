@@ -12,7 +12,6 @@ package:
 	npx pkg -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
 
-
 docker-build:
 	docker build -f Dockerfile -t aws-emr-runner .
 
@@ -21,4 +20,3 @@ docker-package:
 
 docker-shell:
 	$(DOCKER) bash
-	
