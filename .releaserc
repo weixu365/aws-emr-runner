@@ -4,9 +4,9 @@
     "@semantic-release/release-notes-generator",
     ["@semantic-release/github", {
       "assets": [
-        {"path": "bin/aws-emr-runner-linux.bz2"},
-        {"path": "bin/aws-emr-runner-macos.bz2"}
-        {"path": "bin/aws-emr-runner-win.exe.bz2"}
+        {"path": "bin/aws-emr-runner-linux.bz2", "label": "Linux executable"},
+        {"path": "bin/aws-emr-runner-macos.bz2", "label": "Macos executable"},
+        {"path": "bin/aws-emr-runner-win.exe.bz2", "label": "Windows executable"}
       ]
     }],
   ]
