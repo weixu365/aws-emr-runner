@@ -7,7 +7,11 @@ DOCKER=docker run -it --rm \
       -e environment=$(ENVIRONMENT) \
       node
 
-package:
+prune:
+	npm prune --production
+	find node_modules -name '*.d.ts' | xargs rm
+
+package: prune
 	mkdir -p bin && rm -rf bin/*
 	npx pkg -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
