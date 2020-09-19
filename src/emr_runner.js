@@ -92,9 +92,16 @@ class EmrRunner {
       }, {})
   }
 
+  loadAwsSettings() {
+    return Bluebird.props({
+      resources: this.loadResources(),
+      accountId: this.stsClient.getAccount(),
+    })
+      .then(({accountId, resources}) => this.config.reloadWithResources(accountId, resources))
+  }
+
   run() {
-    return this.loadResources()
-      .then(resources => this.config.reloadWithResources(resources))
+    return this.loadAwsSettings()
       .then(() => this.config.addSteps(this.loadSteps()))
       .then(() => Bluebird.props({
         clusterId: this.emrClient.startCluster(this.config.get().cluster),
@@ -106,8 +113,7 @@ class EmrRunner {
   }
 
   addStep(clusterId) {
-    return loadResources()
-      .then(resources => this.config.reloadWithResources(resources))
+    return this.loadAwsSettings()
       .then(() => Bluebird.props({
         clusterId: clusterId || this.getClusterByName(),
         s3Package: this.package()

@@ -75,7 +75,7 @@ cluster:
               VolumesPerInstance: 1
         Name: "Master - 1"
   JobFlowRole: '{{Resources.EMRInstanceProfile.PhysicalResourceId}}'
-  LogUri: s3n://aws-logs-{{Values.aws_account_id}}-ap-southeast-2/elasticmapreduce/
+  LogUri: s3n://aws-logs-{{AWSAccountId}}-ap-southeast-2/elasticmapreduce/
   Name: {{Values.name}}@{{Values.version}}
   ReleaseLabel: 'emr-6.0.0'
   SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'

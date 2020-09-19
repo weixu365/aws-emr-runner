@@ -119,12 +119,16 @@ class Config {
     }
   }
 
+  isAwsVariable(name) {
+    return name.startsWith('Resources.') || ['AWSAccountId'].includes(name)
+  }
+
   renderTemplate(template, values) {
     const spans = Mustache.parse(template)
     const variables = spans
       .filter(span => span[0] == 'name')
       .filter(span => lodash.isNil(lodash.get(values, span[1])))
-      .filter(span => !lodash.isNil(this.resources) || (lodash.isNil(this.resources) && !span[1].startsWith("Resources.")))
+      .filter(span => !lodash.isNil(this.resources) || (lodash.isNil(this.resources) && !this.isAwsVariable(span[1])))
       .map(span => span[1])
 
     if(variables.length > 0) {
@@ -133,7 +137,7 @@ class Config {
 
       throw new Error(`Variable not found: ${variables}`)
     }
-
+    
     Mustache.escape = function(text) {return text;}
     return Mustache.render(template, values)
   }

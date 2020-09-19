@@ -32,7 +32,7 @@ describe('Test Cloudformation client', () => {
     console.log(template)
   });
 
-  it('Should able to deploy stack', () => {
+  it.skip('Should able to deploy stack', () => {
     const config = new Config('samples/enrichment-pipeline.yml', ['samples/enrichment-pipeline.settings.yml'])
     const resources = config.load().get().resources
     const stackName = config.getResourceStackName()

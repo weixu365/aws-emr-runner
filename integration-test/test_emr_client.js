@@ -7,6 +7,9 @@ describe('Test Emr client', () => {
     var emrClient = new EmrClient('ap-southeast-2');
     return emrClient.getClusterByName("Requirements Enrichment Pipeline")
       .then(clusters => console.log(clusters))
+      .catch(e => {
+        console.log(e)
+      })
   });
   
   it('Should throw exception if not found', () => {
