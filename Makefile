@@ -11,7 +11,7 @@ prune:
 	npm prune --production
 	find node_modules -name '*.d.ts' | xargs rm
 
-package: prune
+package:
 	mkdir -p bin && rm -rf bin/*
 	npx pkg -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
