@@ -101,7 +101,7 @@ class EmrRunner {
 
   loadAwsSettings() {
     return Bluebird.props({
-      resources: this.loadResources(),
+      resources: this.deployResources().then(() => this.loadResources()),
       accountId: this.stsClient.getAccount(),
     })
       .then(({accountId, resources}) => this.config.reloadWithResources(accountId, resources))

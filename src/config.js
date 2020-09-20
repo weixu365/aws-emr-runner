@@ -40,7 +40,10 @@ class Config {
     // merge override configs
     lodash.forEach(this.overrideSettings, (value, key) => {
       lodash.set(configDoc, key, value)
-      console.log(`override settings: ${key}=${value}`)
+
+      if(this.resources != null) {
+        console.log(`Override settings: ${key}=${value}`)
+      }
     })
 
     this.config = configDoc
