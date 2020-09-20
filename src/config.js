@@ -28,7 +28,7 @@ class Config {
     }
 
     const fileSettings = this.loadSettingsFiles(this.settingsPath, defaultSettings)
-    logger.debug(`Loaded settings: \n${JSON.stringify(fileSettings, null, '  ')}`)
+    this.logger.debug(`Loaded settings: \n${JSON.stringify(fileSettings, null, '  ')}`)
 
     const configTemplate = fs.readFileSync(this.configPath, 'utf8')
     const configBody = this.renderTemplate(configTemplate, {...defaultSettings, Values: fileSettings})
@@ -42,13 +42,13 @@ class Config {
       lodash.set(configDoc, key, value)
 
       if(this.resources != null) {
-        console.log(`Override settings: ${key}=${value}`)
+        this.logger.info(`Override settings: ${key}=${value}`)
       }
     })
 
     this.config = configDoc
     this.settings = fileSettings
-    logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`)
+    this.logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`)
 
     return this
   }
@@ -77,7 +77,7 @@ class Config {
     this.builtInVariables.AWSAccountId = accountId
     this.resources = resources
     this.load()
-    logger.debug(`Loaded config file with resources: \n${JSON.stringify(this.config, null, '  ')}`);
+    this.logger.debug(`Loaded config file with resources: \n${JSON.stringify(this.config, null, '  ')}`);
     
     return this
   }
@@ -85,7 +85,7 @@ class Config {
   loadSettingsFiles(settingsPath, defaultSettings) {
     var settings = {}
     settingsPath.forEach(path => {
-      logger.debug(`Loaded settings file: ${path}`);
+      this.logger.debug(`Loaded settings file: ${path}`);
       const settingsTemplate = fs.readFileSync(path, 'utf8')
       const settingsBody = this.renderTemplate(settingsTemplate, {...defaultSettings, Values: settings})
       const settingsDoc = this.loadYaml(settingsBody)
@@ -114,14 +114,14 @@ class Config {
   }
 
   log(obj) {
-    console.log(JSON.stringify(obj, null, '  '))
+    this.logger.info(JSON.stringify(obj, null, '  '))
   }
 
   loadYaml(body) {
     try{
       return yaml.safeLoad(body)
     } catch(e) {
-      console.log(`Failed to load yaml due to ${e}`)
+      this.logger.info(`Failed to load yaml due to ${e}`)
       throw e
     }
   }
