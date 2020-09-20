@@ -5,6 +5,7 @@ const lodash = require('lodash')
 const Bluebird = require('bluebird');
 const EmrClient = require('./aws/emr_client')
 const S3Client = require('./aws/s3_client')
+const StsClient = require('./aws/sts_client')
 const CloudformationClient = require('./aws/cloudformation_client')
 const EmrSparkStep = require('./steps/emr_spark_step')
 const logger = require("./logger");
@@ -16,6 +17,7 @@ class EmrRunner {
     const region = this.config.get().deploy.region
     this.emrClient = new EmrClient(region)
     this.s3Client = new S3Client(region)
+    this.stsClient = new StsClient(region)
     this.cloudformationClient = new CloudformationClient(region)
     this.logger = logger
   }
@@ -60,8 +62,7 @@ class EmrRunner {
   }
 
   startCluster(steps=[]) {
-    return loadResources()
-    .then(resources => this.config.reloadWithResources(resources))
+    return this.loadAwsSettings()
     .then(() => this.emrClient.startCluster(this.config.get().cluster))
     .then(cluster_id => this.emrClient.waitForClusterStarted(cluster_id))
   }
@@ -73,6 +74,12 @@ class EmrRunner {
 
   getClusterByName() {
     return this.emrClient.getClusterByName(this.config.get().cluster.Name).then(c => c.id)
+  }
+
+  deleteResources() {
+    const stackName = this.config.getResourceStackName()
+    return this.cloudformationClient.deleteStack(stackName)
+      .then(()=> this.logger.info("Resources stack deleted"))
   }
 
   deployResources() {

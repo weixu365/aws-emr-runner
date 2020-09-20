@@ -1,6 +1,7 @@
 const fs = require("fs");
 const yaml = require('js-yaml');
 const lodash = require('lodash');
+const promiseRetry = require('promise-retry');
 const AWS = require("./aws");
 const logger = require("../logger");
 
@@ -25,21 +26,29 @@ class CloudformationClient {
       .catch(e => Promise.reject(new Error(`Failed to get cloudformation stack resources from '${stackName}', caused by ${e}`)));
   }
 
-  deploy(stackName, resources, stackParameters, tags) {
-    const changeSetName = `aws-emr-runner/${new Date().toISOString()}`.replace(/[^a-z0-9]/gi, '-')
+  async deploy(stackName, resources, stackParameters, tags) {
     stackName = this.normaliseStackName(stackName)
-    let operation = 'CREATE'
-    this.getStack(stackName)
-      .then(stack => {operation = stack == null ? 'CREATE': 'UPDATE'})
-      .then(() => operation == 'UPDATE' && this.clearPreviousChangeSets(stackName))
-      .then(() => console.log(`Create changeset to ${operation} stack ${stackName}`))
-      .then(stack => this.createChangeSet(stackName, resources, stackParameters, tags, changeSetName, operation))
-      .then(() => console.log(`Waiting for changeset to be created`))
-      .then(() => this.waitForChangeSet(stackName, changeSetName))
-      .then(() => console.log(`Execute changeset on stack ${stackName}`))
-      .then(() => this.executeChangeSet(stackName, changeSetName))
-      .then(() => console.log(`Waiting for changeset to be applied to stack ${stackName}`))
-      .then(() => this.waitFor(stackName, operation == 'CREATE' ? 'stackCreateComplete': 'stackUpdateComplete'))
+    const changeSetName = `aws-emr-runner/${new Date().toISOString()}`.replace(/[^a-z0-9]/gi, '-')
+    
+    const stack = await this.getStack(stackName)
+    const operation = stack == null ? 'CREATE': 'UPDATE'
+    if (operation == 'UPDATE') {
+      await this.clearPreviousChangeSets(stackName)
+    } 
+    
+    this.logger.info(`Create changeset to ${operation} resources stack ${stackName}`)
+    await this.createChangeSet(stackName, resources, stackParameters, tags, changeSetName, operation)
+
+    this.logger.info(`Waiting for changeset to be created`)
+    const changeSet = await this.waitForChangeSet(stackName, changeSetName)
+    if(changeSet == null) {
+      this.logger.info(`No changes on resources stack ${stackName}`)
+    } else {
+      this.logger.info(`Executing changeset on stack ${stackName}`)
+      await this.executeChangeSet(stackName, changeSetName)
+      this.logger.info(`Waiting for changeset to be applied to stack ${stackName}`)
+      await this.waitFor(stackName, operation == 'CREATE' ? 'stackCreateComplete': 'stackUpdateComplete')  
+    }
   }
 
   createChangeSet(stackName, resources, stackParameters, tags, changeSetName, changeSetType) {
@@ -50,10 +59,11 @@ class CloudformationClient {
 
     lodash.forEach(this.stackParameters, (value, key) => {
       lodash.set(configDoc, key, value); 
-      console.log(`override settings: ${key}=${value}`)
+      this.logger.info(`override settings: ${key}=${value}`)
     })
 
-    console.log(this.generateStackTemplate(stackName, resources))
+    const stackTemplateBody = this.generateStackTemplate(stackName, resources)
+    this.logger.debug(`Generated stack template: ${stackTemplateBody}`)
     const params = {
       ChangeSetName: changeSetName,
       StackName: stackName,
@@ -77,7 +87,7 @@ class CloudformationClient {
   }
 
   clearPreviousChangeSets(stackName) {
-    console.log(`Cleaning up previous changesets on stack ${stackName}`)
+    this.logger.info(`Cleaning up previous changesets on stack ${stackName}`)
     return this.listChangeSets(stackName)
       .then(result => result.Summaries)
       .each(changeSet => this.deleteChangeSet(stackName, changeSet.ChangeSetName))
@@ -104,12 +114,39 @@ class CloudformationClient {
       .catch(e => Promise.reject(new Error(`Failed to delete changeset from cloudformation stack '${stackName}', caused by ${e}`)));
   }
 
+  deleteStack(stackName) {
+    stackName = this.normaliseStackName(stackName)
+    var params = {
+      StackName: stackName
+    };
+    return this.cloudformation.deleteStack(params).promise()
+      .then(() => {
+        return promiseRetry((retry, number) => {
+          return this.getStack(stackName)
+            .then(r => {
+              if(r == null) {
+                return null
+              }
+              return retry()
+            })
+            .catch(e => {
+              if(!this.isRetryError(e)) {
+                this.logger.info(`Failed to check stack status(${number}): ${e}`)
+              }
+              return retry()
+            })
+        }, {retries: 1000, minTimeout: 2000, factor: 1})
+      })
+      .catch(e => Promise.reject(new Error(`Failed to delete cloudformation stacks '${stackName}', caused by ${e}`)))
+  }
+
   getStack(stackName) {
     stackName = this.normaliseStackName(stackName)
     const params = {
       StackName: stackName
     };
     return this.cloudformation.describeStacks(params).promise()
+      .then(response => response.Stacks[0])
       .catch(e => {
         if (e.message.indexOf("not exist") >=0) {
           return null
@@ -128,12 +165,27 @@ class CloudformationClient {
     return yaml.dump({...defaultTemplate, Resources: resources})
   }
 
+  getEvents(stackName) {
+    stackName = this.normaliseStackName(stackName)
+    var params = {
+      StackName: stackName
+    };
+    return this.cloudformation.describeStackEvents(params).promise()
+      .then(response => response.StackEvents)
+      .map(e => lodash.pick(e, ['LogicalResourceId', 'ResourceStatus', 'ResourceStatusReason']))
+      .catch(e => Promise.reject(new Error(`Failed to get events from stack: '${stackName}', caused by ${e}`)));
+  }
+
   waitFor(stackName, event) {
     const params = {
       StackName: stackName
     };
 
     return this.cloudformation.waitFor(event, params).promise()
+      .catch(e => {
+        return this.getEvents(stackName)
+          .then((events) => Promise.reject(new Error(`Stack is not in the state '${event}', detailed events:\n${JSON.stringify(events, null, '  ')}`)))
+      });
   }
 
   waitForChangeSet(stackName, changeSetName) {
@@ -143,6 +195,30 @@ class CloudformationClient {
     };
 
     return this.cloudformation.waitFor('changeSetCreateComplete', params).promise()
+      .catch(e => {
+        this.getChangeset(stackName, changeSetName)
+          .tap(changeSet => this.logger.debug(`Changeset : ${JSON.stringify(changeSet, null, '  ')}`))
+          .then(changeSet => {
+            if (lodash.size(changeSet.Changes) == 0) {
+              return null
+            }else{
+              return changeSet
+            }
+          })
+      })
+  }
+
+  getChangeset(stackName, changeSetName) {
+    const params = {
+      ChangeSetName: changeSetName,
+      StackName: stackName
+    };
+    return this.cloudformation.describeChangeSet(params).promise()
+      .catch(e => Promise.reject(new Error(`Failed to get changeset from stack: '${stackName}', caused by ${e}`)));
+  }
+
+  isRetryError(err) {
+    return err && err.code === 'EPROMISERETRY' && Object.prototype.hasOwnProperty.call(err, 'retried');
   }
 }
 

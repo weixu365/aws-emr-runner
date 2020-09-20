@@ -38,6 +38,13 @@ program
   });
 
 program
+  .command('delete-resources')
+  .description('Delete resources stack')
+  .action((cmd) => {
+    return new EmrRunner(getConfig().load()).deleteResources()
+  });
+
+program
   .command('start-cluster')
   .description('Start a new EMR cluster. You need to manually terminate the cluster.')
   .action((cmd) => {

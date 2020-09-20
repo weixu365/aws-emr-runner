@@ -1,6 +1,6 @@
 const Bluebird = require('bluebird');
 const promiseRetry = require('promise-retry');
- 
+
 const AWS = require("./aws");
 const logger = require("../logger");
 const EmrHadoopDebuggingStep = require('../steps/emr_hadoop_debugging_step');
@@ -28,7 +28,8 @@ class EmrClient {
 
   waitForClusterStarted(cluster_id) {
     return this.waitForCluster(cluster_id, ['WAITING'])
-      .tap(() => this.logger.info(`Cluster ${cluster_id} started`))
+      .then(() => this.logger.info(`Cluster ${cluster_id} started`))
+      .then(() => cluster_id)
   }
 
   waitForCluster(cluster_id, waitingState=[]) {
@@ -37,7 +38,6 @@ class EmrClient {
     };
 
     return promiseRetry((retry, number) => {
-        
         return this.emr.describeCluster(params).promise()
           .then(r => {
             this.logger.info(`Checking cluster ${cluster_id} status(${number}): ${r.Cluster.Status.State}`);
@@ -65,7 +65,6 @@ class EmrClient {
             return retry()
           });
       }, {retries: 10000, minTimeout: 10 * 1000, factor: 1})
-      .then(() => cluster_id)
   }
 
   getClusterByName(name) {

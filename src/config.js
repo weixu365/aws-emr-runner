@@ -14,14 +14,17 @@ class Config {
     this.overrideSettings = {}
 
     this.resources = null
+    this.builtInVariables = {
+      EmrHadoopDebuggingStep: JSON.stringify(new EmrHadoopDebuggingStep().get(), null, '  '),
+    }
     this.config = null
   }
 
   load() {
     const defaultSettings = {
       env: {...process.env, BUILD_NUMBER: 'manual', AUTO_TERMINATE: 'false'},
-      EmrHadoopDebuggingStep: JSON.stringify(new EmrHadoopDebuggingStep().get(), null, '  '),
-      ...(this.resources && { Resources: this.resources })
+      ...(this.resources && { Resources: this.resources }),
+      ...this.builtInVariables,
     }
 
     const fileSettings = this.loadSettingsFiles(this.settingsPath, defaultSettings)
@@ -67,7 +70,8 @@ class Config {
     return `${this.getName()}-resources-${this.getSetting('environment')}`
   }
 
-  reloadWithResources(resources) {
+  reloadWithResources(accountId, resources) {
+    this.builtInVariables.AWSAccountId = accountId
     this.resources = resources
     this.load()
     logger.debug(`Loaded config file with resources: \n${JSON.stringify(this.config, null, '  ')}`);
