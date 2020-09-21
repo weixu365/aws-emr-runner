@@ -5,12 +5,16 @@ You can download the executables in releases page or by using the following scri
 
 Macos:
 ```bash
-curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aws-emr-runner-macos.bz2 | bunzip2 > aws-emr-runner | chmod +x aws-emr-runner
+curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aws-emr-runner-macos.bz2 | \
+  bunzip2 > aws-emr-runner | \
+  chmod +x aws-emr-runner
 ```
 
 Linux:
 ```bash
-curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aws-emr-runner-linux.bz2 | bunzip2 > aws-emr-runner | chmod +x aws-emr-runner
+curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aws-emr-runner-linux.bz2 | \
+  bunzip2 > aws-emr-runner | \
+  chmod +x aws-emr-runner
 ```
 ### Usage
 #### Validate config files
