@@ -22,7 +22,7 @@ class Config {
 
   load() {
     const defaultSettings = {
-      env: {...process.env, BUILD_NUMBER: 'manual', AUTO_TERMINATE: 'false'},
+      env: {...process.env},
       ...(this.resources && { Resources: this.resources }),
       ...this.builtInVariables,
     }
