@@ -83,6 +83,7 @@ cluster:
   # Remove SecurityConfiguration if you only use the current role to access S3 data
   SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
   ServiceRole: 'EMR_DefaultRole'
+  VisibleToAllUsers: true
   Steps:
     - {{EmrHadoopDebuggingStep}}
 

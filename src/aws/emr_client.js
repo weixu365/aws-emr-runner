@@ -12,7 +12,7 @@ class EmrClient {
   }
 
   startCluster(clusterConfig) {
-    this.logger.debug(`Starting cluster using config: ${JSON.stringify(clusterConfig, null, '  ')}`)
+    this.logger.debug(`Starting cluster in region ${this.emr.region} using config: ${JSON.stringify(clusterConfig, null, '  ')}`)
     return this.emr.runJobFlow(clusterConfig).promise()
       .then(r => r.JobFlowId)
   }
