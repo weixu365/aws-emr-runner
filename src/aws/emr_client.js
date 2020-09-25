@@ -44,16 +44,16 @@ class EmrClient {
 
             if (["TERMINATED"].indexOf(r.Cluster.Status.State) >=0 ) {
               this.logger.info(`Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
-              return cluster_id
+              return true
             }
 
             if (["TERMINATED_WITH_ERRORS"].indexOf(r.Cluster.Status.State) >=0 ) {
               this.logger.info(`Cluster ${cluster_id} terminated with errors(${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
-              return cluster_id
+              return false
             }
 
             if (waitingState.indexOf(r.Cluster.Status.State) >=0 ){
-              return cluster_id
+              return true
             }
 
             return retry()
@@ -107,12 +107,12 @@ class EmrClient {
         .then(r => {
           if (["CANCELLED", "FAILED", "INTERRUPTED"].indexOf(r.Step.Status.State) >=0 ) {
             this.logger.info(`step  ${step_id} failed (${number}): \n${JSON.stringify(r.Step.Status, null, '  ')}`)
-            return r
+            return false
           }
 
           if (["COMPLETED"].indexOf(r.Step.Status.State) >=0 ){
             this.logger.info(`Step ${step_id} completed(${number})`)
-            return r
+            return true
           }
 
           if(number % 10 == 0) {

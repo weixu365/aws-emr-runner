@@ -117,6 +117,7 @@ class EmrRunner {
       }))
       .tap(({clusterId, s3Package}) => this.logger.info(`Waiting for EMR cluster to be completed ${clusterId}: \n${JSON.stringify(this.config.get().cluster.Steps, null, '  ')}`))
       .then(({clusterId, s3Package}) => this.emrClient.waitForCluster(clusterId))
+      .then(succeeded => succeeded ? Bluebird.resolve("Done") : Bluebird.reject(new Error("Failed to run EMR cluster")) )
   }
 
   addStep(clusterId) {
@@ -130,6 +131,7 @@ class EmrRunner {
       .then(({clusterId, s3Package}) => this.submitSteps(clusterId, this.loadSteps()))
       .tap(({clusterId, stepIds}) => this.logger.info(`Waiting for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
       .then(({clusterId, stepIds}) => Bluebird.all(stepIds.map(stepId => this.waitStep(clusterId, stepId))))
+      .then(results => results.filter(r => !r).length == 0 ? Bluebird.resolve("Done") : Bluebird.reject(new Error("Failed to run steps on EMR cluster")) )
   }
 }
 
