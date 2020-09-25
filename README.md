@@ -49,3 +49,7 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 - Predefined variables
   - `{{EmrHadoopDebuggingStep}}` enable debugging in EMR
   - `{{AWSAccountID}}` The current aws account id
+
+### Supported configurations of EMR cluster
+Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
+https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property

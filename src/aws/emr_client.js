@@ -28,31 +28,44 @@ class EmrClient {
 
   waitForClusterStarted(cluster_id) {
     return this.waitForCluster(cluster_id, ['WAITING'])
-      .then(() => this.logger.info(`Cluster ${cluster_id} started`))
+      .then(() => this.getClusterStatus(cluster_id))
+      .then(status => {
+        if(status.State == 'WAITTING') {
+          this.logger.info(`Cluster ${cluster_id} started`)
+        }else {
+          return Bluebird.reject(new Error("Failed to start cluster"))
+        }
+      })
       .then(() => cluster_id)
   }
 
-  waitForCluster(cluster_id, waitingState=[]) {
+  getClusterStatus(cluster_id) {
     var params = {
       ClusterId: cluster_id
     };
 
-    return promiseRetry((retry, number) => {
-        return this.emr.describeCluster(params).promise()
-          .then(r => {
-            this.logger.info(`Checking cluster ${cluster_id} status(${number}): ${r.Cluster.Status.State}`);
+    return this.emr.describeCluster(params).promise()
+      .then(r => r.Cluster.Status)
+  }
 
-            if (["TERMINATED"].indexOf(r.Cluster.Status.State) >=0 ) {
-              this.logger.info(`Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
+  waitForCluster(cluster_id, waitingState=[]) {
+    return promiseRetry((retry, number) => {
+        return this.getClusterStatus(cluster_id)
+          .then(status => {
+            const state = status.State
+            this.logger.info(`Checking cluster ${cluster_id} status(${number}): ${state}`);
+
+            if (["TERMINATED"].indexOf(state) >=0 ) {
+              this.logger.info(`Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(status, null, '  ')}`)
               return true
             }
 
-            if (["TERMINATED_WITH_ERRORS"].indexOf(r.Cluster.Status.State) >=0 ) {
-              this.logger.info(`Cluster ${cluster_id} terminated with errors(${number}): \n  ${JSON.stringify(r.Cluster.Status, null, '  ')}`)
+            if (["TERMINATED_WITH_ERRORS"].indexOf(state) >=0 ) {
+              this.logger.info(`Cluster ${cluster_id} terminated with errors(${number}): \n  ${JSON.stringify(status, null, '  ')}`)
               return false
             }
 
-            if (waitingState.indexOf(r.Cluster.Status.State) >=0 ){
+            if (waitingState.indexOf(state) >=0 ){
               return true
             }
 
@@ -69,7 +82,7 @@ class EmrClient {
 
   getClusterByName(name) {
     var params = {
-      ClusterStates: ['RUNNING', 'WAITING']
+      ClusterStates: ['STARTING', 'RUNNING', 'WAITING']
     };
     this.logger.info(`Looking up EMR cluster with name "${name}"`)
     return this.emr.listClusters(params).promise()

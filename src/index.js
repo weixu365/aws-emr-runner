@@ -64,6 +64,7 @@ program
     const emrRunner = new EmrRunner(getConfig().load())
 
     return Bluebird.resolve(cmd.clusterId || emrRunner.getClusterByName())
+      .tap(cluster_id => logger.info(`Found cluster with id ${cluster_id}`))
       .then(cluster_id => emrRunner.terminateCluster(cluster_id))
       .then(cluster_id => logger.info(`Cluster ${cluster_id} terminated`))
   });
