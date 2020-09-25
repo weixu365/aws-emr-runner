@@ -4,9 +4,9 @@ deploy:
   region: "ap-southeast-2"
   package:
     - make package
-  packagePath: "target/scala-2.12/requirements-enrichment-pipeline-assembly-{{Values.assembly_version}}.jar"
+  packagePath: "target/scala-2.12/sample-spark-pipeline-assembly-{{Values.assembly_version}}.jar"
   bucketName: {{Resources.DeploymentsBucket.PhysicalResourceId}}
-  deployPackageName: requirements-enrichment-pipeline-assembly-{{Values.version}}.jar
+  deployPackageName: sample-spark-pipeline-assembly-{{Values.version}}.jar
 
 # stack tags applies to EMR cluster and resource stack
 stackTags:
@@ -22,7 +22,7 @@ steps:
       - spark.yarn.maxAppAttempts=5
     DriverJavaOptions:
       - -Dreporting.type=incremental
-    MainClass: seek.aips.enrichment.Main
+    MainClass: enrichment.Main
     DeployMode: client
     Master: yarn
     Args:
@@ -77,7 +77,10 @@ cluster:
   JobFlowRole: '{{Resources.EMRInstanceProfile.PhysicalResourceId}}'
   LogUri: s3n://aws-logs-{{AWSAccountId}}-ap-southeast-2/elasticmapreduce/
   Name: {{Values.name}}@{{Values.version}}
-  ReleaseLabel: 'emr-6.0.0'
+  ReleaseLabel: 'emr-6.1.0'
+  
+  # Depends on your S3 bucket policy, you may need to use different roles to access different buckets
+  # Remove SecurityConfiguration if you only use the current role to access S3 data
   SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
   ServiceRole: 'EMR_DefaultRole'
   Steps:
@@ -87,15 +90,15 @@ resources:
   DeploymentsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: enrichment-pipeline-deployments-{{Values.environment}}
+      BucketName: sample-spark-pipeline-deployments-{{Values.environment}}-test
       Tags:
         - Key: "seek:data:types:internal"
-          Value: "system-artefacts"
+          Value: "system-artefacts2"
 
   EmrEc2Role:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: CQRequirementsEnrichmentPipelineEmrEc2Role
+      RoleName: sample-spark-pipeline-emr-ec2-role
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -121,7 +124,23 @@ resources:
   EMRInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      InstanceProfileName: CQRequirementsEnrichmentPipelineEmrEc2Role
+      InstanceProfileName: sample-spark-pipeline-emr-ec2-profile
       Path: "/"
       Roles:
         - Ref: EmrEc2Role
+
+  # This is optional based on your s3 bucket policy
+  EMRSecurityConfiguration:
+    Type: AWS::EMR::SecurityConfiguration
+    Properties:
+      Name: sample-spark-pipeline-emr-securityconfiguration
+      SecurityConfiguration:
+        AuthorizationConfiguration:
+          EmrFsConfiguration:
+            RoleMappings:
+              -
+                Role: "arn:aws:iam::xxxx:role/assumed-role-for-s3-bucket"
+                IdentifierType: Prefix
+                Identifiers:
+                  - "s3://your-bucket/"
+      

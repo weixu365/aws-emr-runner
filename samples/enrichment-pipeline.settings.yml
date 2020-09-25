@@ -1,12 +1,11 @@
-name: Requirements Enrichment Pipeline
+name: Sample Spark Application
 environment: prod
 version: {{env.BUILD_NUMBER}}
 
 assembly_version: "1.0"
 auto_terminate: {{env.AUTO_TERMINATE}}
-core_instance_count: 5
+core_instance_count: 3
 master_instance_count: 1
-aws_account_id: xxxxxxx
 is_production: true
-subnet: subnet-xxxxxx
-ec2_keyname: xxx
+subnet: subnet-xxx
+ec2_keyname: xxx-xxx

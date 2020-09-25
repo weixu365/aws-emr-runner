@@ -126,7 +126,7 @@ class EmrRunner {
         s3Package: this.package()
           .then(() => this.uploadPackage())
       }))
-      .tap(({clusterId, s3Package}) => this.logger.info(`Submitting EMR Steps to cluster ${clusterId}: \n${JSON.stringify(this.config.get().cluster.Steps, null, '  ')}`))
+      .tap(({clusterId, s3Package}) => this.logger.info(`Submitting EMR Steps to cluster ${clusterId}`))
       .then(({clusterId, s3Package}) => this.submitSteps(clusterId, this.loadSteps()))
       .tap(({clusterId, stepIds}) => this.logger.info(`Waiting for steps to be finished in cluster ${clusterId}: ${JSON.stringify(stepIds)}`))
       .then(({clusterId, stepIds}) => Bluebird.all(stepIds.map(stepId => this.waitStep(clusterId, stepId))))

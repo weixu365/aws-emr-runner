@@ -33,16 +33,18 @@ class CloudformationClient {
     const stack = await this.getStack(stackName)
     const operation = stack == null ? 'CREATE': 'UPDATE'
     if (operation == 'UPDATE') {
+      this.logger.info(`Cleaning up previous changesets on stack ${stackName}`)
       await this.clearPreviousChangeSets(stackName)
     } 
     
-    this.logger.info(`Create changeset to ${operation} resources stack ${stackName}`)
+    this.logger.info(`Create changeset to ${operation} resources stack ${stackName}: ${changeSetName}`)
     await this.createChangeSet(stackName, resources, stackParameters, tags, changeSetName, operation)
 
     this.logger.info(`Waiting for changeset to be created`)
     const changeSet = await this.waitForChangeSet(stackName, changeSetName)
     if(changeSet == null) {
-      this.logger.info(`No changes on resources stack ${stackName}`)
+      this.logger.info(`No changes on resources stack ${stackName}, clean up change set: ${changeSetName}`)
+      await this.deleteChangeSet(stackName, changeSetName)
     } else {
       this.logger.info(`Executing changeset on stack ${stackName}`)
       await this.executeChangeSet(stackName, changeSetName)
@@ -87,7 +89,6 @@ class CloudformationClient {
   }
 
   clearPreviousChangeSets(stackName) {
-    this.logger.info(`Cleaning up previous changesets on stack ${stackName}`)
     return this.listChangeSets(stackName)
       .then(result => result.Summaries)
       .each(changeSet => this.deleteChangeSet(stackName, changeSet.ChangeSetName))
@@ -99,7 +100,7 @@ class CloudformationClient {
       StackName: stackName
     };
     return this.cloudformation.listChangeSets(params).promise()
-      .tap(changeSets => this.logger.info(`Found changesets: ${changeSets.Summaries.map(c => c.ChangeSetName)}`))
+      .tap(changeSets => this.logger.info(`Found changesets: ${JSON.stringify(changeSets.Summaries.map(c => c.ChangeSetName))}`))
       .catch(e => Promise.reject(new Error(`Failed to list changesets from cloudformation stack '${stackName}', caused by ${e}`)));
   }
 
@@ -135,7 +136,7 @@ class CloudformationClient {
               }
               return retry()
             })
-        }, {retries: 1000, minTimeout: 2000, factor: 1})
+        }, {forever: true, minTimeout: 2000, factor: 1})
       })
       .catch(e => Promise.reject(new Error(`Failed to delete cloudformation stacks '${stackName}', caused by ${e}`)))
   }

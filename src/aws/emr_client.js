@@ -64,7 +64,7 @@ class EmrClient {
             }
             return retry()
           });
-      }, {retries: 10000, minTimeout: 10 * 1000, factor: 1})
+      }, {forever: true, minTimeout: 10 * 1000, factor: 1})
   }
 
   getClusterByName(name) {
@@ -116,7 +116,7 @@ class EmrClient {
           }
 
           if(number % 10 == 0) {
-            this.logger.info(`Step ${step_id} status(${number}) is ${r.Step.Status.State}, retrying`)
+            this.logger.info(`Step ${step_id} status(${number}) is ${r.Step.Status.State}`)
           }
 
           return retry()
@@ -127,7 +127,7 @@ class EmrClient {
           }
           return retry()
         })
-    }, {retries: 1000, minTimeout: 5000, factor: 1})
+    }, {forever: true, minTimeout: 5000, factor: 1})
   }
 
   isRetryError(err) {

@@ -69,8 +69,11 @@ program
   .option('-c --cluster-id <cluster id>',  'Specify cluster id. Will get the active cluster by name if not specified')
   .description('Run EMR step in an existing cluster')
   .action((cmd) => {
-    logger.info('Run emr step');
-    logger.info(`clusterId=${cmd.clusterId}`);
+    if(cmd.clusterId) {
+      logger.info(`Run emr step on cluster id=${cmd.clusterId}`);
+    } else {
+      logger.info(`Run emr step on cluster`);
+    }
 
     return new EmrRunner(getConfig().load()).addStep(cmd.clusterId)
   });
