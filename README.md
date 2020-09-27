@@ -38,7 +38,7 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 ```
 
 ## Prerequisite
-- EMR Service Role. You can use either `EMR_DefaultRole` by execute `aws emr create-default-roles` or create a custom role in the resources stack
+- EMR Service Role. You can use either the default EMR role `EMR_DefaultRole` (created by `aws emr create-default-roles`) or create a custom role in the resources stack
 
 ## Resources stack
 - S3 Bucket. Upload package files to this s3 bucket then run EMR steps using this package
@@ -71,3 +71,27 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 #### Supported configurations of EMR cluster
 Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property
+
+## FAQ
+#### How to assume a different role to access s3 bucket
+You can assume different roles by pre-defined rules using [`AWS::EMR::SecurityConfiguration`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-securityconfiguration.html), e.g.
+```yaml
+cluster:
+  ...
+  SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
+
+resources:
+  EMRSecurityConfiguration:
+    Type: AWS::EMR::SecurityConfiguration
+    Properties:
+      Name: sample-spark-pipeline-emr-securityconfiguration
+      SecurityConfiguration:
+        AuthorizationConfiguration:
+          EmrFsConfiguration:
+            RoleMappings:
+              -
+                Role: "arn:aws:iam::<account-id>:role/<role>"
+                IdentifierType: Prefix
+                Identifiers:
+                  - "s3://your-bucket/"
+```
