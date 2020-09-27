@@ -1,6 +1,6 @@
 Run Spark application in aws emr
 
-### Download
+## Download
 You can download the executables in releases page or by using the following script:
 
 Macos:
@@ -16,7 +16,7 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
   bunzip2 > aws-emr-runner | \
   chmod +x aws-emr-runner
 ```
-### Usage
+## Usage
 #### Validate config files
 ```bash
 ./aws-emr-runner validate -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
@@ -27,15 +27,25 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 ./aws-emr-runner run -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
-### Prerequisite
+#### Start an EMR Clustr and keep it alive until manually terminated
+```bash
+./aws-emr-runner start-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+```
+
+#### Terminate an EMR Clustr
+```bash
+./aws-emr-runner terminate-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+```
+
+## Prerequisite
 - EMR Service Role. You can use either `EMR_DefaultRole` by execute `aws emr create-default-roles` or create a custom role in the resources stack
 
-### Resources stack
+## Resources stack
 - S3 Bucket. Upload package files to this s3 bucket then run EMR steps using this package
 - IAM Role and instance profile for emr instance
 - Any other resource you want to put in the resource stack
 
-### Underlying steps when running a spark application
+## Underlying steps when running a spark application
 - Load setting files
 - Load config file and evaluate variables except resources variables
 - Create or update resources stack
@@ -45,7 +55,12 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 - Create EMR cluster with defined steps 
 - Wait until all steps completed
 
-### Supported variables
+## Configuration
+#### Sample config files
+- samples/enrichment-pipeline.yml
+- samples/enrichment-pipeline.settings.yml
+
+#### Supported variables
 - Environment variable, e.g. `{{env.BUILD_NUMBER}}`
 - Values in a settings file, reference through `Values` prefix, e.g. `{{Values.environment}}`
 - Resources in resource stack, e.g. `{{Resources.EMRInstanceProfile.PhysicalResourceId}}`
@@ -53,6 +68,6 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
   - `{{EmrHadoopDebuggingStep}}` enable debugging in EMR
   - `{{AWSAccountID}}` The current aws account id
 
-### Supported configurations of EMR cluster
+#### Supported configurations of EMR cluster
 Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property
