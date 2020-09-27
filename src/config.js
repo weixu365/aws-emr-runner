@@ -70,7 +70,7 @@ class Config {
   }
 
   getResourceStackName() {
-    return `${this.getName()}-resources-${this.getSetting('environment')}`
+    return `${this.getName()}-resources-${this.get().deploy.environment}`
   }
 
   reloadWithResources(accountId, resources) {

@@ -27,6 +27,9 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 ./aws-emr-runner run -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
+### Prerequisite
+- EMR Service Role. You can use either `EMR_DefaultRole` by execute `aws emr create-default-roles` or create a custom role in the resources stack
+
 ### Resources stack
 - S3 Bucket. Upload package files to this s3 bucket then run EMR steps using this package
 - IAM Role and instance profile for emr instance

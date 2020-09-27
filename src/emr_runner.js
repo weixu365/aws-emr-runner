@@ -48,7 +48,7 @@ class EmrRunner {
         return new EmrSparkStep({S3PackagePath: s3PackagePath, ...stepConfig}).get()
       }
 
-      throw new Error(`Not support EMR Step type: ${stepConfig.Type}`)
+      throw new Error(`Not supported EMR Step type: ${stepConfig.Type}`)
     })
   }
 

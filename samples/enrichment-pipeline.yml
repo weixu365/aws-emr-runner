@@ -2,6 +2,7 @@ name: {{Values.name}}
 
 deploy:
   region: "ap-southeast-2"
+  environment: {{Values.environment}}
   package:
     - make package
   packagePath: "target/scala-2.12/sample-spark-pipeline-assembly-{{Values.assembly_version}}.jar"
@@ -29,7 +30,9 @@ steps:
       - prod
 
 cluster:
-  EbsRootVolumeSize: '10'
+  # Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
+  # https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property
+  # EbsRootVolumeSize: '10'
   ScaleDownBehavior: 'TERMINATE_AT_TASK_COMPLETION'
   Applications:
     - Name: Hadoop
@@ -38,7 +41,7 @@ cluster:
     - Name: Ganglia
     - Name: Spark
     - Name: Zeppelin
-  AutoScalingRole: 'EMR_AutoScaling_DefaultRole'
+  # AutoScalingRole: 'EMR_AutoScaling_DefaultRole'
   Configurations:
     - Classification: "spark-hive-site"
       Properties:

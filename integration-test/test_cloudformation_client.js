@@ -28,7 +28,7 @@ describe('Test Cloudformation client', () => {
     const resources = config.load().get().resources
     
     const cloudformationClient = new CloudformationClient('ap-southeast-2');
-    const template = cloudformationClient.generateStackTemplate(config.getSetting('name'), resources)
+    const template = cloudformationClient.generateStackTemplate(config.getName(), resources)
     console.log(template)
   });
 
