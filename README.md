@@ -72,12 +72,18 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property
 
-#### Hook scripts
+#### Life cycle hook scripts
 You could run any command or javascript file at any of the life cycle events, e.g. package your spark application at `package` event
 ```
 scripts:
   package:
     - make docker-package
+
+or if only a single command
+
+scripts:
+  package: make docker-package
+
 ```
 
 or run `aws emr create-default-roles` before deploying resources stack
@@ -89,6 +95,7 @@ scripts:
 ```
 
 Here are all supported life cycle events in order:
+
 For command `run` and `run-step`:
 - beforeDeployResources
 - afterDeployResources
@@ -114,8 +121,13 @@ For command `start-cluster`:
 - beforeLoadResources
 - afterLoadResources
 - beforeStartCluster
-- beforeWaitForCluster
+- beforeWaitForClusterStarted
 - afterClusterStarted
+
+For command `terminate-cluster`:
+- beforeTerminateCluster
+- beforeWaitForClusterTerminated
+- afterClusterTerminated
 
 ## FAQ
 #### How to assume a different role to access s3 bucket

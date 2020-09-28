@@ -30,7 +30,7 @@ class EmrClient {
     return this.waitForCluster(cluster_id, ['WAITING'])
       .then(() => this.getClusterStatus(cluster_id))
       .then(status => {
-        if(status.State == 'WAITTING') {
+        if(status.State == 'WAITING') {
           this.logger.info(`Cluster ${cluster_id} started`)
         }else {
           return Bluebird.reject(new Error("Failed to start cluster"))

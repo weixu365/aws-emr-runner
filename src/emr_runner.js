@@ -65,8 +65,8 @@ class EmrRunner {
 
   package() {
     return this.trigger('beforePackage')
-    .then(() => this.trigger('package'))
-    .then(() => this.trigger('afterPackage'))
+      .then(() => this.trigger('package'))
+      .then(() => this.trigger('afterPackage'))
   }
 
   uploadPackage() {
@@ -106,16 +106,20 @@ class EmrRunner {
 
   startCluster(steps=[]) {
     return this.loadAwsSettings()
-    .tap(() => this.trigger('beforeStartCluster'))
-    .then(() => this.emrClient.startCluster(this.config.get().cluster))
-    .tap(() => this.trigger('beforeWaitForCluster'))
-    .then(cluster_id => this.emrClient.waitForClusterStarted(cluster_id))
-    .tap(() => this.trigger('afterClusterStarted'))
+      .tap(() => this.trigger('beforeStartCluster'))
+      .then(() => this.emrClient.startCluster(this.config.get().cluster))
+      .tap(() => this.trigger('beforeWaitForClusterStarted'))
+      .then(cluster_id => this.emrClient.waitForClusterStarted(cluster_id))
+      .tap(() => this.trigger('afterClusterStarted'))
   }
   
   terminateCluster(cluster_id) {
-    return this.emrClient.terminateCluster(cluster_id)
+    return this.trigger('beforeTerminateCluster')
+      .then(() => this.emrClient.terminateCluster(cluster_id))
+      .tap(() => this.trigger('beforeWaitForClusterTerminated'))
       .then(cluster_id => this.emrClient.waitForCluster(cluster_id))
+      .tap(() => this.trigger('afterClusterTerminated'))
+      .then(() => cluster_id)
   }
 
   getClusterByName() {
