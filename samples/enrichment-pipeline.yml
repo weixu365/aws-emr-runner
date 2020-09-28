@@ -3,12 +3,19 @@ name: {{Values.name}}
 deploy:
   region: "ap-southeast-2"
   environment: {{Values.environment}}
-  package:
-    - make package
   packagePath: "target/scala-2.12/sample-spark-pipeline-assembly-{{Values.assembly_version}}.jar"
   bucketName: {{Resources.DeploymentsBucket.PhysicalResourceId}}
   deployPackageName: sample-spark-pipeline-assembly-{{Values.version}}.jar
 
+scripts:
+  beforeDeployResources:
+    - echo '+++ Submit Spark application to EMR'
+    - echo aws emr create-default-roles
+  package:
+    - echo make docker-package
+  beforeRun:
+    - echo '--- Waiting for Spark application to be finished'
+  
 # stack tags applies to EMR cluster and resource stack
 stackTags:
   'Name': {{Values.name}}

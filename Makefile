@@ -27,3 +27,10 @@ docker-package:
 
 docker-shell:
 	$(DOCKER) bash
+
+unit-test:
+	npx mocha test
+
+integration-test:
+	npx mocha integration-test
+

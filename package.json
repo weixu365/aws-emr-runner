@@ -31,8 +31,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
-  "mocha": {
-    "spec": "integration-test"
   }
 }

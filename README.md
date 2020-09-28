@@ -72,6 +72,51 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property
 
+#### Hook scripts
+You could run any command or javascript file at any of the life cycle events, e.g. package your spark application at `package` event
+```
+scripts:
+  package:
+    - make docker-package
+```
+
+or run `aws emr create-default-roles` before deploying resources stack
+
+```
+scripts:
+  beforeDeployResources:
+    - aws emr create-default-roles
+```
+
+Here are all supported life cycle events in order:
+For command `run` and `run-step`:
+- beforeDeployResources
+- afterDeployResources
+- beforeLoadResources
+- afterLoadResources
+- beforePackage
+- package
+- afterPackage
+- beforeUploadPackage
+- afterUploadPackage
+
+- beforeRun (only available in `run` command)
+- afterRun (only available in `run` command)
+- afterComplete (only available in `run` command)
+
+- beforeSubmit (only available in `run-step` command)
+- afterSubmit (only available in `run-step` command)
+- afterStepComplete (only available in `run-step` command)
+
+For command `start-cluster`:
+- beforeDeployResources
+- afterDeployResources
+- beforeLoadResources
+- afterLoadResources
+- beforeStartCluster
+- beforeWaitForCluster
+- afterClusterStarted
+
 ## FAQ
 #### How to assume a different role to access s3 bucket
 You can assume different roles by pre-defined rules using [`AWS::EMR::SecurityConfiguration`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-securityconfiguration.html), e.g.
