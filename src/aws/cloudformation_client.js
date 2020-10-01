@@ -197,7 +197,7 @@ class CloudformationClient {
 
     return this.cloudformation.waitFor('changeSetCreateComplete', params).promise()
       .catch(e => {
-        this.getChangeset(stackName, changeSetName)
+        return this.getChangeset(stackName, changeSetName)
           .tap(changeSet => this.logger.debug(`Changeset : ${JSON.stringify(changeSet, null, '  ')}`))
           .then(changeSet => {
             if (lodash.size(changeSet.Changes) == 0) {

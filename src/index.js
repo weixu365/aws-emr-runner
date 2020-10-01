@@ -7,7 +7,7 @@ const logger = require('./logger')
 const getConfig = () => new Config(program.configFile, program.settingFiles)
 
 process.on('unhandledRejection', error => {
-  console.log(error);
+  logger.error(error.stack)
   process.exit(1)
 });
 
