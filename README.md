@@ -17,9 +17,14 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
   chmod +x aws-emr-runner
 ```
 ## Usage
-#### Validate config files
+#### Validate config files (optional)
 ```bash
 ./aws-emr-runner validate -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+```
+
+#### Setup resources (optional)
+```bash
+./aws-emr-runner resources -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
 #### Run EMR Clustr and spark application
@@ -32,7 +37,7 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 ./aws-emr-runner start-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
-#### Terminate an EMR Clustr
+#### Terminate an EMR Clustr (optional)
 ```bash
 ./aws-emr-runner terminate-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
@@ -43,6 +48,7 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 ## Resources stack
 - S3 Bucket. Upload package files to this s3 bucket then run EMR steps using this package
 - IAM Role and instance profile for emr instance
+- (Optional) Lambda function to clean up idled clusters which has the same name
 - Any other resource you want to put in the resource stack
 
 ## Underlying steps when running a spark application
