@@ -27,17 +27,17 @@ curl -sSL https://github.com/weixu365/aws-emr-runner/releases/latest/download/aw
 ./aws-emr-runner resources -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
-#### Run EMR Clustr and spark application
+#### Run EMR Cluster and spark application
 ```bash
 ./aws-emr-runner run -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
-#### Start an EMR Clustr and keep it alive until manually terminated
+#### Start an EMR Cluster and keep it alive until manually terminated
 ```bash
 ./aws-emr-runner start-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
 
-#### Terminate an EMR Clustr (optional)
+#### Terminate an EMR Cluster (optional)
 ```bash
 ./aws-emr-runner terminate-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
 ```
