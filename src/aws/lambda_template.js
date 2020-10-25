@@ -63,15 +63,16 @@ const emrCleanerCode = dedent(`
           continue
         }
         
-        console.log(\`Found cluster: \${cluster.Id} which created at: ${clusterInfo.Cluster.Status.Timeline.CreationDateTime}, 
-          get ready at: ${clusterInfo.Cluster.Status.Timeline.ReadyDateTime}\`)
-
         const idleStarted = await this.getIdleStartedTime(clusterInfo)
         const maxIdleMinutes = parseInt(maxIdleTag.Value)
         const now = new Date()
     
         const idledMinutes = (now - idleStarted)/(1000 * 60)
     
+        if(clusterInfo.Cluster.Status.State != 'WAITING') {
+          console.log(\`Cluster \${cluster.Id} changed status to \${clusterInfo.Cluster.Status.State}, skipped\`)
+          continue
+        }
         if(idledMinutes > maxIdleMinutes) {
           console.log(\`Cluster \${cluster.Id} has idled for \${idledMinutes} minutes, greater than \${maxIdleMinutes} minutes, terminating\`)
           await this.terminateCluster(cluster.Id)
