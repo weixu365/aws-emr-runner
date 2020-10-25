@@ -17,7 +17,7 @@ package:
 	bzip2 -k bin/*
 
 release:
-	npx semantic-release -b init
+	npx semantic-release
 
 docker-build:
 	docker build -f Dockerfile -t aws-emr-runner .
