@@ -37,7 +37,7 @@ class Config {
 
     // merge tags
     configDoc.cluster.Tags = [
-      ...(configDoc.deploy.maxIdleMinutes && this.loadStackTags({maxIdleMinutes: configDoc.deploy.maxIdleMinutes})),
+      ...(this.getMaxIdleMinutesTag(configDoc)),
       ...this.loadStackTags(configDoc.stackTags)
     ]
 
@@ -56,6 +56,14 @@ class Config {
     this.logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`)
 
     return this
+  }
+
+  getMaxIdleMinutesTag(configDoc) {
+    if (configDoc.deploy.maxIdleMinutes) {
+      return this.loadStackTags({maxIdleMinutes: configDoc.deploy.maxIdleMinutes})
+    } else {
+      return []
+    }
   }
 
   addClusterMonitorLambda(configDoc) {
