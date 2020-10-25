@@ -133,7 +133,7 @@ class EmrRunner {
   }
 
   deployResources() {
-    const fileConfig = this.config.load().get()
+    const fileConfig = this.config.get()
     const resources = fileConfig.resources
     const stackName = this.config.getResourceStackName()
     const tags = this.config.loadStackTags(fileConfig.stackTags)

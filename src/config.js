@@ -3,6 +3,7 @@ const yaml = require('js-yaml');
 const lodash = require('lodash');
 const Mustache = require('mustache');
 const logger = require('./logger');
+const LambdaTemplate = require('./aws/lambda_template');
 const EmrHadoopDebuggingStep = require('./steps/emr_hadoop_debugging_step');
 
 
@@ -35,7 +36,10 @@ class Config {
     const configDoc = this.loadYaml(configBody)
 
     // merge tags
-    configDoc.cluster.Tags = [...(configDoc.cluster.Tags || []), ...this.loadStackTags(configDoc.stackTags)]
+    configDoc.cluster.Tags = [
+      ...(configDoc.deploy.maxIdleMinutes && this.loadStackTags({maxIdleMinutes: configDoc.deploy.maxIdleMinutes})),
+      ...this.loadStackTags(configDoc.stackTags)
+    ]
 
     // merge override configs
     lodash.forEach(this.overrideSettings, (value, key) => {
@@ -46,11 +50,19 @@ class Config {
       }
     })
 
+    this.addClusterMonitorLambda(configDoc)
     this.config = configDoc
     this.settings = fileSettings
     this.logger.debug(`Loaded config file: \n${JSON.stringify(this.config, null, '  ')}`)
 
     return this
+  }
+
+  addClusterMonitorLambda(configDoc) {
+    if (configDoc.deploy.maxIdleMinutes) {
+      const lambdaResources = new LambdaTemplate().getTemplate(configDoc.name, 'functionCode')
+      configDoc.resources = {...lambdaResources, ...configDoc.resources}
+    }
   }
 
   get() {
@@ -107,9 +119,9 @@ class Config {
   }
 
   loadStackTags(tags) {
-    return lodash.toPairs(tags).map(p => ({
+    return lodash.toPairs(tags || []).map(p => ({
       Key: p[0], 
-      Value: p[1]
+      Value: p[1].toString()
     }))
   }
 

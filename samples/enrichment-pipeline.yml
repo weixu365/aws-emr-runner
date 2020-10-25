@@ -6,6 +6,7 @@ deploy:
   packagePath: "target/scala-2.12/sample-spark-pipeline-assembly-{{Values.assembly_version}}.jar"
   bucketName: {{Resources.DeploymentsBucket.PhysicalResourceId}}
   deployPackageName: sample-spark-pipeline-assembly-{{Values.version}}.jar
+  maxIdleMinutes: 30 # Will automatically terminate the cluster if exceed max idle minutes
 
 scripts:
   beforeDeployResources:

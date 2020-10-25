@@ -130,6 +130,16 @@ For command `terminate-cluster`:
 - afterClusterTerminated
 
 ## FAQ
+
+#### How to automatically terminate an idled cluster
+By using `maxIdleMinutes` in the config file, aws-emr-runner will setup a scheduled task to check the idled clusters, and terminate cluster if it has idled longer than `maxIdleMinutes`, e.g.
+
+```yaml
+deploy:
+  ...
+  maxIdleMinutes: 30 # Will automatically terminate the cluster if exceed max idle minutes
+```
+
 #### How to assume a different role to access s3 bucket
 You can assume different roles by pre-defined rules using [`AWS::EMR::SecurityConfiguration`](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-emr-securityconfiguration.html), e.g.
 ```yaml

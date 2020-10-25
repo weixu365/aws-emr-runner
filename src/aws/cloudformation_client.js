@@ -73,7 +73,7 @@ class CloudformationClient {
       ChangeSetType: changeSetType,
       Parameters: parameters,
       Tags: tags,
-      TemplateBody: this.generateStackTemplate(stackName, resources)
+      TemplateBody: stackTemplateBody
     };
     return this.cloudformation.createChangeSet(params).promise()
       .catch(e => Promise.reject(new Error(`Failed to create cloudformation changeset for '${stackName}', caused by ${e}`)));
