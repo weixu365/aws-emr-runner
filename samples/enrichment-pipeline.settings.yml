@@ -1,0 +1,10 @@
+name: Sample Spark Application
+environment: prod
+version: {{env.BUILD_NUMBER}}
+
+assembly_version: "1.0"
+core_instance_count: 3
+master_instance_count: 1
+is_production: true
+subnet: subnet-xxx
+ec2_keyname: xxx-xxx

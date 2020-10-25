@@ -1,0 +1,158 @@
+name: {{Values.name}}
+
+deploy:
+  region: "ap-southeast-2"
+  environment: {{Values.environment}}
+  packagePath: "target/scala-2.12/sample-spark-pipeline-assembly-{{Values.assembly_version}}.jar"
+  bucketName: {{Resources.DeploymentsBucket.PhysicalResourceId}}
+  deployPackageName: sample-spark-pipeline-assembly-{{Values.version}}.jar
+  maxIdleMinutes: 30 # Will automatically terminate the cluster if exceed max idle minutes
+
+scripts:
+  beforeDeployResources:
+    - echo '+++ Submit Spark application to EMR'
+    - echo aws emr create-default-roles
+  package:
+    - echo make docker-package
+  beforeRun:
+    - echo '--- Waiting for Spark application to be finished'
+  
+# stack tags applies to EMR cluster and resource stack
+stackTags:
+  'Name': {{Values.name}}
+  'service': {{Values.name}}
+  'Version': {{Values.version}}
+
+steps:
+  - Type: Spark
+    Name: Enrich Profiles
+    ActionOnFailure: CANCEL_AND_WAIT
+    SparkConfigs:
+      - spark.yarn.maxAppAttempts=5
+    DriverJavaOptions:
+      - -Dreporting.type=incremental
+    MainClass: enrichment.Main
+    DeployMode: client
+    Master: yarn
+    Args:
+      - prod
+
+cluster:
+  # Support all the configs for aws nodejs sdk `new EMR().runJobFlow()` method
+  # https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/EMR.html#runJobFlow-property
+  # EbsRootVolumeSize: '10'
+  ScaleDownBehavior: 'TERMINATE_AT_TASK_COMPLETION'
+  Applications:
+    - Name: Hadoop
+    - Name: Hive
+    - Name: Hue
+    - Name: Ganglia
+    - Name: Spark
+    - Name: Zeppelin
+  # AutoScalingRole: 'EMR_AutoScaling_DefaultRole'
+  Configurations:
+    - Classification: "spark-hive-site"
+      Properties:
+        "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
+    - Classification: "spark-log4j"
+      Properties:
+        "log4j.org.apache.spark": "TRACE"
+    - Classification: "spark"
+      Properties:
+        "maximizeResourceAllocation": "true"
+  Instances:
+    Ec2KeyName: {{Values.ec2_keyname}}
+    Ec2SubnetId: {{Values.subnet}}
+    KeepJobFlowAliveWhenNoSteps: true
+    InstanceGroups:
+      - InstanceCount: {{Values.core_instance_count}}
+        InstanceRole: 'CORE'
+        InstanceType: "m5.xlarge"
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 96
+                VolumeType: "gp2"
+              VolumesPerInstance: 1
+        Name: "Core - 2"
+      - InstanceCount: {{Values.master_instance_count}}
+        InstanceRole: "MASTER"
+        InstanceType: "m5.xlarge"
+        EbsConfiguration:
+          EbsBlockDeviceConfigs:
+            - VolumeSpecification:
+                SizeInGB: 32
+                VolumeType: "gp2"
+              VolumesPerInstance: 1
+        Name: "Master - 1"
+  JobFlowRole: '{{Resources.EMRInstanceProfile.PhysicalResourceId}}'
+  LogUri: s3n://aws-logs-{{AWSAccountId}}-ap-southeast-2/elasticmapreduce/
+  Name: {{Values.name}}@{{Values.version}}
+  ReleaseLabel: 'emr-6.1.0'
+  
+  # Depends on your S3 bucket policy, you may need to use different roles to access different buckets
+  # Remove SecurityConfiguration if you only use the current role to access S3 data
+  SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
+  ServiceRole: 'EMR_DefaultRole'
+  VisibleToAllUsers: true
+  Steps:
+    - {{EmrHadoopDebuggingStep}}
+
+resources:
+  DeploymentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: sample-spark-pipeline-deployments-{{Values.environment}}-test
+      Tags:
+        - Key: "seek:data:types:internal"
+          Value: "system-artefacts2"
+
+  EmrEc2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: sample-spark-pipeline-emr-ec2-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceforEC2Role
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM
+      Policies:
+        - PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action: "s3:ListBucket"
+                Resource: arn:aws:s3:::data-{{Values.environment}}
+      Path: "/"
+
+  EMRInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: sample-spark-pipeline-emr-ec2-profile
+      Path: "/"
+      Roles:
+        - Ref: EmrEc2Role
+
+  # This is optional based on your s3 bucket policy
+  EMRSecurityConfiguration:
+    Type: AWS::EMR::SecurityConfiguration
+    Properties:
+      Name: sample-spark-pipeline-emr-securityconfiguration
+      SecurityConfiguration:
+        AuthorizationConfiguration:
+          EmrFsConfiguration:
+            RoleMappings:
+              -
+                Role: "arn:aws:iam::xxxx:role/assumed-role-for-s3-bucket"
+                IdentifierType: Prefix
+                Identifiers:
+                  - "s3://your-bucket/"
+      
