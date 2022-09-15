@@ -1,6 +1,7 @@
 
 
-DOCKER=docker run -it --rm \
+DOCKER=docker run -it --rm --platform=linux/arm64 \
+	  -v $(HOME)/.aws:/root/.aws \
       -v `pwd`:/workdir \
       -w /workdir \
       -e BUILD_NUMBER=$(BUILD_NUMBER) \

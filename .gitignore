@@ -105,3 +105,6 @@ dist
 
 # Packaged binary files
 bin
+
+# IntelliJ
+.idea/
