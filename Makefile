@@ -8,7 +8,7 @@ DOCKER=docker run -it --rm --platform=linux/arm64 \
       node
 
 prune:
-	npm prune --production
+	npm prune --omit=dev
 	find node_modules -name '*.d.ts' | xargs rm
 
 package:
