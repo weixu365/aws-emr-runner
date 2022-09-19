@@ -3,7 +3,8 @@ DOCKER=docker run --rm --platform=linux/arm64 \
       -w /workdir \
       -e BUILD_NUMBER=$(BUILD_NUMBER) \
       -e environment=$(ENVIRONMENT) \
-      node
+      node \
+      npm install
 
 prune:
 	npm prune --omit=dev
