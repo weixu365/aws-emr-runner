@@ -1,6 +1,6 @@
 
 
-DOCKER=docker run -it --rm \
+DOCKER=docker run -it --rm --platform=linux/arm64 \
       -v `pwd`:/workdir \
       -w /workdir \
       -e BUILD_NUMBER=$(BUILD_NUMBER) \
@@ -12,7 +12,7 @@ prune:
 	find node_modules -name '*.d.ts' | xargs rm
 
 package:
-	mkdir -p bin && rm -rf bin/*
+	mkdir -p bin && rm -rf bin
 	npx pkg -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
 
