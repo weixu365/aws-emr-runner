@@ -1,6 +1,6 @@
+include env
 
-
-DOCKER=docker run -it --rm --platform=linux/arm64 \
+DOCKER=docker run --rm --platform=linux/arm64 \
       -v `pwd`:/workdir \
       -w /workdir \
       -e BUILD_NUMBER=$(BUILD_NUMBER) \
@@ -25,8 +25,13 @@ docker-build:
 docker-package:
 	$(DOCKER) make package
 
+docker-test:
+	$(DOCKER) make unit-test integration-test
+
 docker-shell:
 	$(DOCKER) bash
+
+doc
 
 unit-test:
 	npx mocha test
