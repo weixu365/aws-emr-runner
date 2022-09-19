@@ -23,13 +23,8 @@ docker-build:
 docker-package:
 	$(DOCKER) make package
 
-docker-test:
-	$(DOCKER) make unit-test integration-test
-
 docker-shell:
 	$(DOCKER) bash
-
-doc
 
 unit-test:
 	npx mocha test
