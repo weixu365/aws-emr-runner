@@ -1,5 +1,3 @@
-include env
-
 DOCKER=docker run --rm --platform=linux/arm64 \
       -v `pwd`:/workdir \
       -w /workdir \
