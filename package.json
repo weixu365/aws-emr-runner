@@ -4,7 +4,8 @@
   "description": "Create AWS EMR cluster and run emr steps, e.g. submit Spark application",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "integration-test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -25,8 +26,7 @@
     "commitizen": "^4.2.1",
     "cz-conventional-changelog": "^3.3.0",
     "mocha": "^8.1.3",
-    "pkg": "^5.8.0",
-    "semantic-release": "^19.0.5"
+    "pkg": "^5.8.0"
   },
   "config": {
     "commitizen": {
