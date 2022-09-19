@@ -1,4 +1,4 @@
-FROM node:alpine
+FROM arm64/node:alpine
 
 LABEL author="SEEK AIPS CQ"
 LABEL maintainer="SEEK AIPS CQ"
