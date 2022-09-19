@@ -9,5 +9,5 @@ WORKDIR /app
 COPY src /app/src
 COPY package* /app/
 
-RUN npm install --production && \
+RUN npm install && \
   find node_modules -name '*.d.ts' | xargs rm
