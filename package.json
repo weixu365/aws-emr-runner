@@ -17,6 +17,7 @@
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.20",
     "mustache": "^4.0.1",
+    "nanoid": "^3.1.31",
     "promise-retry": "^2.0.1",
     "winston": "^3.3.3"
   },
