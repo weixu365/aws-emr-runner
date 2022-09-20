@@ -14,7 +14,7 @@
     "bluebird": "^3.7.2",
     "commander": "^6.1.0",
     "dedent": "^0.7.0",
-    "js-yaml": "^3.14.0",
+    "js-yaml": "^4.1.0",
     "lodash": "^4.17.20",
     "mustache": "^4.0.1",
     "promise-retry": "^2.0.1",
