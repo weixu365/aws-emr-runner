@@ -9,7 +9,7 @@
 # the `language` matrix defined below to confirm you have the correct set of
 # supported CodeQL languages.
 #
-name: "CodeQL"
+name: "Tests"
 
 on:
   push:
@@ -40,6 +40,9 @@ jobs:
 
     - name: Codecov
       uses: codecov/codecov-action@v3.1.1
+
+    - name: Tests
+      run: npm run test; npm run integration-test
 
     - name: Checkout repository
       uses: actions/checkout@v3

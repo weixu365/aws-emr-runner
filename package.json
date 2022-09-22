@@ -4,8 +4,8 @@
   "description": "Create AWS EMR cluster and run emr steps, e.g. submit Spark application",
   "main": "index.js",
   "scripts": {
-    "test": "mocha",
-    "integration-test": "mocha"
+    "test": "nyc mocha",
+    "integration-test": "nyc mocha"
   },
   "author": "",
   "license": "ISC",
@@ -16,8 +16,11 @@
     "dedent": "^0.7.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.20",
+    "make": "^0.8.1",
     "mustache": "^4.0.1",
     "nanoid": "^4.0.0",
+    "nyc": "^15.1.0",
+    "package": "^1.0.1",
     "promise-retry": "^2.0.1",
     "winston": "^3.3.3"
   },
