@@ -10,7 +10,7 @@ prune:
 	npm prune --omit=dev
 	find node_modules -name '*.d.ts' | xargs rm
 
-package:
+package: prune
 	mkdir -p bin && rm -rf bin
 	npx pkg -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
@@ -28,8 +28,8 @@ docker-shell:
 	$(DOCKER) bash
 
 unit-test:
-	npx mocha test
+	npx test
 
 integration-test:
-	npx mocha integration-test
+	npx integration-test
 
