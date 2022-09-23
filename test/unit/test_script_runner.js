@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const tmp = require('tmp');
 const Bluebird = require('bluebird');
-const ScriptRunner = require('../src/script_runner');
+const ScriptRunner = require('../../src/script_runner');
 
 describe('ScriptRunnerTest', () => {
   it('should run command', () => {

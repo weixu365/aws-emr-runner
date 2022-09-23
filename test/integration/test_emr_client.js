@@ -1,6 +1,6 @@
 const { expect } = require('chai');
-const EmrClient = require('../src/aws/emr_client');
-const EmrSparkStep = require('../src/steps/emr_spark_step')
+const EmrClient = require('../../src/aws/emr_client');
+const EmrSparkStep = require('../../src/steps/emr_spark_step')
 
 describe('Test Emr client', () => {
   it('Should able to get cluster by name', () => {
