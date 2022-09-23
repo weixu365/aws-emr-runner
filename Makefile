@@ -30,6 +30,4 @@ docker-shell:
 unit-test:
 	npx test
 
-integration-test:
-	npx integration-test
 
