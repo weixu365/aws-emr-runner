@@ -6,7 +6,8 @@
   "scripts": {
     "test": "mocha",
     "integrationtest": "mocha",
-    "coverage": "npx nyc@latest mocha"
+    "coverage": "codecov"
+
   },
   "author": "",
   "license": "ISC",
@@ -21,7 +22,6 @@
     "make": "^0.0.0",
     "mustache": "^4.0.1",
     "nanoid": "^4.0.0",
-    "nyc": "^15.1.0",
     "package": "^1.0.1",
     "promise-retry": "^2.0.1",
     "underscore": "^1.12.1",
@@ -30,9 +30,11 @@
   "devDependencies": {
     "@semantic-release/github": "^8.0.6",
     "chai": "^4.3.6",
+    "codecov": "^3.8.3",
     "commitizen": "^4.2.1",
     "cz-conventional-changelog": "^3.3.0",
     "mocha": "^10.0.0",
+    "nyc": "^15.1.0",
     "pkg": "^5.8.0"
   },
   "config": {
