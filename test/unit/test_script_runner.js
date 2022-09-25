@@ -1,4 +1,4 @@
-const { expect } = require('chai');
+var expect = chai.expect; 
 const fs = require('fs');
 const path = require('path');
 const tmp = require('tmp');
