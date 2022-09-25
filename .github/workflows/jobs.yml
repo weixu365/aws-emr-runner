@@ -41,6 +41,9 @@ jobs:
       run: npm run cover
     - name: Codecov
       uses: codecov/codecov-action@v3.1.1
+      with:
+        files: "./coverage/*"
+        fail_ci_if_error: true
 
   analyze:
     name: Analyze
@@ -66,8 +69,6 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
-        files: "./coverage/*"
-        fail_ci_if_error: true
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
