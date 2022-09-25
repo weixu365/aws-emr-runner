@@ -30,4 +30,6 @@ docker-shell:
 unit-test:
 	npx test
 
+cover: 
+	npx -p nyc -p mocha -p chai npm run cover
 

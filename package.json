@@ -5,12 +5,12 @@
   "main": "index.js",
   
   "scripts": {
-    "test:unit": "mocha chai \"./test/unit\"",
-    "test:integration": "mocha chai \"./test/integration\"",
+    "test:unit": "mocha \"./test/unit\"",
+    "test:integration": "mocha \"./test/integration\"",
     "cover": "npm run cover:unit && npm run cover:report",
     "cover:unit": "nyc --silent npm run test:unit",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
-    "cover:report": "nyc report --reporter text -t coverage --report-dir ./coverage"
+    "cover:report": "nyc report --reporter=text-lcov"
   },
   "author": "",
   "license": "ISC",
