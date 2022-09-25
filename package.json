@@ -4,8 +4,8 @@
   "description": "Create AWS EMR cluster and run emr steps, e.g. submit Spark application",
   "main": "index.js",
   "scripts": {
-    "test:unit": "mocha",
-    "test:integration": "mocha",
+    "test:unit": "mocha \"./test/unit\"",
+    "test:integration": "mocha \"./test/integration\"",
     "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
     "cover:unit": "nyc --silent npm run test:unit",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
