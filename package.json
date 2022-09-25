@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "Create AWS EMR cluster and run emr steps, e.g. submit Spark application",
   "main": "index.js",
+  
   "scripts": {
     "test:unit": "mocha \"./test/unit\"",
     "test:integration": "mocha \"./test/integration\"",
     "cover": "npm run cover:unit && npm run cover:report",
-    "cover:unit": "nyc --silent -no-clean npm run test:unit",
+    "cover:unit": "nyc --silent npm run test:unit",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
-    "cover:report": "nyc report --reporter=lcov --reporter=text"
+    "cover:report": "nyc report --reporter text -t coverage --report-dir ./coverage"
   },
   "author": "",
   "license": "ISC",
