@@ -1,4 +1,4 @@
-var expect = chai.expect; 
+const { expect, assert } = require('chai');
 const Config = require('../../src/config');
  
 describe('Test load yaml file', () => {
