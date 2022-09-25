@@ -5,8 +5,8 @@
   "main": "index.js",
   
   "scripts": {
-    "test:unit": "mocha \"./test/unit\"",
-    "test:integration": "mocha \"./test/integration\"",
+    "test:unit": "chai mocha \"./test/unit\"",
+    "test:integration": "chai mocha \"./test/integration\"",
     "cover": "npm run cover:unit && npm run cover:report",
     "cover:unit": "nyc --silent npm run test:unit",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
