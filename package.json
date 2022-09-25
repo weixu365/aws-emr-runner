@@ -6,11 +6,10 @@
   "scripts": {
     "test:unit": "mocha \"./test/unit\"",
     "test:integration": "mocha \"./test/integration\"",
-    "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
-    "cover:unit": "nyc --silent npm run test:unit",
+    "cover": "npm run cover:unit && npm run cover:report",
+    "cover:unit": "nyc --silent -no-clean npm run test:unit",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
-    "cover:report": "nyc report --reporter=lcov --reporter=text",
-    "coverage": "codecov"
+    "cover:report": "nyc report --reporter=lcov --reporter=text"
   },
   "author": "",
   "license": "ISC",
@@ -33,7 +32,6 @@
   "devDependencies": {
     "@semantic-release/github": "^8.0.6",
     "chai": "^4.3.6",
-    "codecov": "^3.8.3",
     "commitizen": "^4.2.1",
     "cz-conventional-changelog": "^3.3.0",
     "mocha": "^10.0.0",
