@@ -1,7 +1,7 @@
 const { expect, assert } = require('chai');
 const yaml = require('js-yaml');
-const CloudformationClient = require('../src/aws/cloudformation_client');
-const Config = require('../src/config');
+const CloudformationClient = require('../../src/aws/cloudformation_client');
+const Config = require('../../src/config');
 
 describe('Test Cloudformation client', () => {
   it('Should able to get stack resources', () => {

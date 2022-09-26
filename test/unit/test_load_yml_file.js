@@ -1,5 +1,5 @@
-const { expect } = require('chai');
-const Config = require('../src/config');
+const { expect, assert } = require('chai');
+const Config = require('../../src/config');
  
 describe('Test load yaml file', () => {
   it("Load config", () => {

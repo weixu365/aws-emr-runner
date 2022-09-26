@@ -28,8 +28,11 @@ docker-shell:
 	$(DOCKER) bash
 
 unit-test:
-	npx test
+	npx -p nyc -p mocha -p chai npm run cover:unit
 
-integration-test:
-	npx integration-test
+it:
+	npx -p nyc -p mocha -p chai npm run cover:integration
+
+cover: 
+	npx -p nyc -p mocha -p chai npm run cover
 

@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const StsClient = require('../src/aws/sts_client');
+const StsClient = require('../../src/aws/sts_client');
 
 describe('Test Sts client', () => {
   it('Should able to get account', () => {
