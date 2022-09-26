@@ -17,8 +17,6 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "master" ]
-  schedule:
-    - cron: '31 10 * * 0'
 
 jobs:
   dependency-review:
@@ -32,6 +30,8 @@ jobs:
   test:
     name: Tests and Coverage
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps: 
     - name: Checkout repository
       uses: actions/checkout@v3
