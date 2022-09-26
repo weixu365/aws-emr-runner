@@ -9,7 +9,8 @@
     "test:integration": "mocha \"./test/integration\"",
     "cover": "npm run cover:unit && npm run cover:report",
     "cover:unit": "nyc --silent npm run test:unit",
-    "cover:report": "nyc report --reporter=text-lcov"
+    "cover:integration": "nyc --silent --no-clean npm run test:integration",
+    "cover:report": "nyc report --reporter=text -lcov --report-dir=coverage"
   },
   "author": "",
   "license": "ISC",
