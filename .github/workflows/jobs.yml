@@ -28,6 +28,7 @@ jobs:
       - uses: alexwilson/enable-github-automerge-action@main
 
   dependency-review:
+    if: github.event_name == "pull_request"
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout Repository'
