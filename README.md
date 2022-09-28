@@ -5,7 +5,6 @@ This is for arm64 builds and implementation
 Run Spark application in aws emr
 
 ## Usage
-```
 #### Validate config files (optional)
 ```bash
 ./aws-emr-runner validate -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
