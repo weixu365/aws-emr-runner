@@ -27,7 +27,7 @@
     "nanoid": "^4.0.0",
     "package": "^1.0.1",
     "promise-retry": "^2.0.1",
-    "underscore": "^1.12.1",
+    "underscore": "^1.13.6",
     "winston": "^3.3.3"
   },
   "devDependencies": {
