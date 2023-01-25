@@ -17,7 +17,7 @@
   "dependencies": {
     "aws-sdk": "^2.1300.0",
     "bluebird": "^3.7.2",
-    "commander": "^9.4.0",
+    "commander": "^10.0.0",
     "dedent": "^0.7.0",
     "fstream": "^1.0.12",
     "js-yaml": "^4.1.0",
