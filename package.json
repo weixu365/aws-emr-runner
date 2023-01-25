@@ -35,7 +35,7 @@
     "chai": "^4.3.6",
     "commitizen": "^4.2.1",
     "cz-conventional-changelog": "^3.3.0",
-    "mocha": "^10.0.0",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0",
     "pkg": "^5.8.0"
   },
