@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Create AWS EMR cluster and run emr steps, e.g. submit Spark application",
   "main": "index.js",
-  
   "scripts": {
     "test:unit": "mocha chai \"./test/unit\"",
     "test:integration": "mocha \"./test/integration\"",
@@ -22,7 +21,7 @@
     "fstream": "^1.0.12",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.20",
-    "make": "^0.8.1",
+    "make": "^0.0.0",
     "mustache": "^4.0.1",
     "nanoid": "^4.0.0",
     "package": "^1.0.1",

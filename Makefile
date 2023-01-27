@@ -21,6 +21,10 @@ release:
 docker-build:
 	docker build -f Dockerfile -t aws-emr-runner .
 
+docker-test: docker-build
+	$(DOCKER) make unit-test it cover
+
+
 docker-package:
 	$(DOCKER) make package
 
