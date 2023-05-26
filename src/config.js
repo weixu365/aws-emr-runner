@@ -139,7 +139,7 @@ class Config {
 
   loadYaml(body) {
     try{
-      return yaml.safeLoad(body)
+      return yaml.load(body)
     } catch(e) {
       this.logger.info(`Failed to load yaml due to ${e}`)
       throw e
