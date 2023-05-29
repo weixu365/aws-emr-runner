@@ -21,12 +21,12 @@ jobs:
   Build:
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [16.x]
         os: 
           - host: ubuntu-latest
-            target: node18-linux-x64,node18-macos-x64,node18-win-x64
+            target: node16-linux-x64,node16-macos-x64,node16-win-x64
           - host: macos-latest
-            target: node18-macos-arm64
+            target: node16-macos-arm64
 
     runs-on: ${{ matrix.os.host }}
     steps:
