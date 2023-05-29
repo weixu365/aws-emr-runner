@@ -1,4 +1,5 @@
 
+TARGET ?= node18-linux-x64,node18-macos-x64,node18-win-x64
 
 DOCKER=docker run -it --rm \
       -v `pwd`:/workdir \
@@ -13,7 +14,7 @@ prune:
 
 package:
 	mkdir -p bin && rm -rf bin/*
-	npx pkg -c package.json --out-path bin src/index.js
+	npx pkg -t $(TARGET) -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
 
 release:
