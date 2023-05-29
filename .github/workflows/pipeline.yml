@@ -24,9 +24,9 @@ jobs:
         node-version: [18.x]
         os: 
           - host: ubuntu-latest
-            target: node18-linux-x64,node18-macos-x64,node18-win-x64
+            target: linux,macos,win
           - host: macos-latest
-            target: node18-macos-arm64
+            target: macos
 
     runs-on: ${{ matrix.os.host }}
     steps:
