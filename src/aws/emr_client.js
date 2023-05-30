@@ -57,7 +57,7 @@ class EmrClient {
 
             if (["TERMINATED"].indexOf(state) >=0 ) {
               this.logger.info(`Cluster ${cluster_id} terminated (${number}): \n  ${JSON.stringify(status, null, '  ')}`)
-              return true
+              return this.isStepsCompleted(cluster_id)
             }
 
             if (["TERMINATED_WITH_ERRORS"].indexOf(state) >=0 ) {
@@ -78,6 +78,35 @@ class EmrClient {
             return retry()
           });
       }, {forever: true, minTimeout: 10 * 1000, factor: 1})
+  }
+
+  isStepsCompleted(cluster_id) {
+    return this.getClusterSteps(cluster_id)
+      .then(result => {
+        const failedSteps = (result.Steps || []).filter(step => {
+          const state = step.Status.State
+          this.logger.info(`Checking step status in cluster ${cluster_id}, step: ${step.Name}: ${state}`);
+    
+          if (["CANCELLED", "FAILED", "INTERRUPTED"].indexOf(state) >=0 ) {
+            this.logger.info(`Step failed in cluster ${cluster_id}:\n ${JSON.stringify(step.Status, null, '  ')}`)
+            return true
+          }
+  
+          return false
+        })
+
+        return failedSteps.length === 0
+      })
+  }
+
+  getClusterSteps(cluster_id) {
+    this.logger.info(`Getting steps of EMR cluster: ${cluster_id}`)
+
+    var params = {
+      ClusterId: cluster_id,
+    }
+
+    return this.emr.listSteps(params).promise()
   }
 
   getClusterByName(name) {
