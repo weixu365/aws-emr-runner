@@ -4,7 +4,10 @@ const Config = require('./config')
 const EmrRunner = require('./emr_runner')
 const logger = require('./logger')
 
-const getConfig = () => new Config(program.configFile, program.settingFiles)
+const getConfig = () => {
+  const opts = program.opts();
+  return new Config(opts.configFile, opts.settingFiles);
+}
 
 process.on('unhandledRejection', error => {
   logger.error(error.stack)
@@ -24,10 +27,12 @@ const program = new Command()
 program
   .command('validate')
   .description('Validate config files')
-  .action((cmd) => {
+  .action(() => {
     logger.info('Validate configs');
-    logger.info(`- setting files ${program.settingFiles}`);
-    logger.info(`- config file ${program.configFile}`);
+    const opts = program.opts();
+    logger.info(opts);
+    logger.info(`- setting files ${opts.settingFiles}`);
+    logger.info(`- config file ${opts.configFile}`);
 
     getConfig().load()
 
@@ -37,21 +42,21 @@ program
 program
   .command('resources')
   .description('Setup resources stack for running EMR steps')
-  .action((cmd) => {
+  .action(() => {
     return new EmrRunner(getConfig().load()).deployResources()
   });
 
 program
   .command('delete-resources')
   .description('Delete resources stack')
-  .action((cmd) => {
+  .action(() => {
     return new EmrRunner(getConfig().load()).deleteResources()
   });
 
 program
   .command('start-cluster')
   .description('Start a new EMR cluster. You need to manually terminate the cluster.')
-  .action((cmd) => {
+  .action(() => {
     return new EmrRunner(getConfig().load()).startCluster()
       .then(cluster_id => logger.info(`Cluster ${cluster_id} started`))
   });

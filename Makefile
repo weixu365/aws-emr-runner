@@ -33,4 +33,7 @@ unit-test:
 
 integration-test:
 	npx mocha integration-test
-
+	BATCH=1234 GIT_BRANCH=test BUILD_NUMBER=test node src/index.js \
+		--setting-files samples/enrichment-pipeline.settings.yml \
+		-f samples/enrichment-pipeline.yml \
+		validate
