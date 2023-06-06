@@ -1,19 +1,28 @@
 const Bluebird = require('bluebird');
+const { 
+  EMRClient: Emr,
+  RunJobFlowCommand,
+  TerminateJobFlowsCommand,
+  DescribeClusterCommand,
+  ListStepsCommand,
+  ListClustersCommand,
+  AddJobFlowStepsCommand,
+  DescribeStepCommand
+} = require("@aws-sdk/client-emr");
 const promiseRetry = require('promise-retry');
 
-const AWS = require("./aws");
 const logger = require("../logger");
 const EmrHadoopDebuggingStep = require('../steps/emr_hadoop_debugging_step');
 
 class EmrClient {
   constructor(region) {
-    this.emr = new AWS.EMR({region})
+    this.emr = new Emr({region})
     this.logger = logger
   }
 
   startCluster(clusterConfig) {
     this.logger.debug(`Starting cluster in region ${this.emr.region} using config: ${JSON.stringify(clusterConfig, null, '  ')}`)
-    return this.emr.runJobFlow(clusterConfig).promise()
+    return Bluebird.resolve(this.emr.send(new RunJobFlowCommand(clusterConfig)))
       .then(r => r.JobFlowId)
   }
 
@@ -21,7 +30,7 @@ class EmrClient {
     var params = {
       JobFlowIds: [ cluster_id]
     };
-    return this.emr.terminateJobFlows(params).promise()
+    return Bluebird.resolve(this.emr.send(new TerminateJobFlowsCommand(params)))
       .then(() => cluster_id)
       .catch(e => Promise.reject(new Error(`Failed to terminate EMR cluster ${cluster_id}, caused by ${e}`)));
   }
@@ -44,7 +53,7 @@ class EmrClient {
       ClusterId: cluster_id
     };
 
-    return this.emr.describeCluster(params).promise()
+    return Bluebird.resolve(this.emr.send(new DescribeClusterCommand(params)))
       .then(r => r.Cluster.Status)
   }
 
@@ -106,7 +115,7 @@ class EmrClient {
       ClusterId: cluster_id,
     }
 
-    return this.emr.listSteps(params).promise()
+    return Bluebird.resolve(this.emr.send(new ListStepsCommand(params)))
   }
 
   getClusterByName(name) {
@@ -114,7 +123,7 @@ class EmrClient {
       ClusterStates: ['STARTING', 'RUNNING', 'WAITING']
     };
     this.logger.info(`Looking up EMR cluster with name "${name}"`)
-    return this.emr.listClusters(params).promise()
+    return Bluebird.resolve(this.emr.send(new ListClustersCommand(params)))
       .then(r => r.Clusters)
       .map(c => ({id: c.Id, name: c.Name, status: c.Status.State, normalizedInstanceHours: c.NormalizedInstanceHours}))
       .filter(c => c.name.startsWith(name))
@@ -132,7 +141,7 @@ class EmrClient {
       JobFlowId: cluster_id,
       Steps: steps
     };
-    return this.emr.addJobFlowSteps(params).promise()
+    return Bluebird.resolve(this.emr.send(new AddJobFlowStepsCommand(params)))
       // .tap(params => this.logger.info(JSON.stringify(params)))
       .then(r => ({clusterId: cluster_id, stepIds: r.StepIds}))
       .catch(e => Promise.reject(new Error(`Failed to add steps to EMR cluster ${cluster_id}, caused by ${e}`)));
@@ -145,7 +154,7 @@ class EmrClient {
     };
 
     return promiseRetry((retry, number) => {
-      return this.emr.describeStep(params).promise()
+      return Bluebird.resolve(this.emr.send(new DescribeStepCommand(params)))
         .then(r => {
           if (["CANCELLED", "FAILED", "INTERRUPTED"].indexOf(r.Step.Status.State) >=0 ) {
             this.logger.info(`step  ${step_id} failed (${number}): \n${JSON.stringify(r.Step.Status, null, '  ')}`)

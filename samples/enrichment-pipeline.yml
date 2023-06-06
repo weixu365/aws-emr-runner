@@ -6,7 +6,7 @@ deploy:
   packagePath: "target/scala-2.12/sample-spark-pipeline-assembly-{{Values.assembly_version}}.jar"
   bucketName: {{Resources.DeploymentsBucket.PhysicalResourceId}}
   deployPackageName: sample-spark-pipeline-assembly-{{Values.version}}.jar
-  maxIdleMinutes: 30 # Will automatically terminate the cluster if exceed max idle minutes
+  maxIdleMinutes: 5 # Will automatically terminate the cluster if exceed max idle minutes
 
 scripts:
   beforeDeployResources:
@@ -88,11 +88,11 @@ cluster:
   JobFlowRole: '{{Resources.EMRInstanceProfile.PhysicalResourceId}}'
   LogUri: s3n://aws-logs-{{AWSAccountId}}-ap-southeast-2/elasticmapreduce/
   Name: {{Values.name}}@{{Values.version}}
-  ReleaseLabel: 'emr-6.1.0'
+  ReleaseLabel: 'emr-6.10.0'
   
   # Depends on your S3 bucket policy, you may need to use different roles to access different buckets
   # Remove SecurityConfiguration if you only use the current role to access S3 data
-  SecurityConfiguration: '{{Resources.EMRSecurityConfiguration.PhysicalResourceId}}'
+  # SecurityConfiguration: '{ {Resources.EMRSecurityConfiguration.PhysicalResourceId} }'
   ServiceRole: 'EMR_DefaultRole'
   VisibleToAllUsers: true
   Steps:
@@ -141,18 +141,18 @@ resources:
       Roles:
         - Ref: EmrEc2Role
 
-  # This is optional based on your s3 bucket policy
-  EMRSecurityConfiguration:
-    Type: AWS::EMR::SecurityConfiguration
-    Properties:
-      Name: sample-spark-pipeline-emr-securityconfiguration
-      SecurityConfiguration:
-        AuthorizationConfiguration:
-          EmrFsConfiguration:
-            RoleMappings:
-              -
-                Role: "arn:aws:iam::xxxx:role/assumed-role-for-s3-bucket"
-                IdentifierType: Prefix
-                Identifiers:
-                  - "s3://your-bucket/"
+  # # This is optional based on your s3 bucket policy
+  # EMRSecurityConfiguration:
+  #   Type: AWS::EMR::SecurityConfiguration
+  #   Properties:
+  #     Name: sample-spark-pipeline-emr-securityconfiguration
+  #     SecurityConfiguration:
+  #       AuthorizationConfiguration:
+  #         EmrFsConfiguration:
+  #           RoleMappings:
+  #             -
+  #               Role: "arn:aws:iam::xxxx:role/assumed-role-for-s3-bucket"
+  #               IdentifierType: Prefix
+  #               Identifiers:
+  #                 - "s3://your-bucket/"
       

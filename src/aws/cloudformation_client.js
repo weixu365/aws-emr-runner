@@ -1,14 +1,30 @@
-const fs = require("fs");
+const Bluebird = require('bluebird');
+const { 
+  CloudFormationClient: CloudFormation,
+  DescribeStackResourcesCommand,
+  CreateChangeSetCommand,
+  ExecuteChangeSetCommand,
+  ListChangeSetsCommand,
+  DeleteChangeSetCommand,
+  DeleteStackCommand,
+  DescribeStacksCommand,
+  DescribeStackEventsCommand,
+  DescribeChangeSetCommand,
+  waitUntilChangeSetCreateComplete,
+  waitUntilStackCreateComplete,
+  waitUntilStackUpdateComplete,
+} = require("@aws-sdk/client-cloudformation");
+
 const yaml = require('js-yaml');
 const lodash = require('lodash');
 const promiseRetry = require('promise-retry');
-const AWS = require("./aws");
 const logger = require("../logger");
 
 class CloudformationClient {
   constructor(region) {
-    this.cloudformation = new AWS.CloudFormation({ region })
+    this.cloudformation = new CloudFormation({ region })
     this.logger = logger
+    this.retryPolicy = {minDelay: 1, maxDelay: 5}
   }
 
   normaliseStackName(name) {
@@ -20,7 +36,7 @@ class CloudformationClient {
     const params = {
       StackName: stackName
     };
-    return this.cloudformation.describeStackResources(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new DescribeStackResourcesCommand(params)))
       .tap(() => this.logger.info(`Get cloudformation stack resources from '${stackName}'`))
       .then(r => r.StackResources)
       .catch(e => Promise.reject(new Error(`Failed to get cloudformation stack resources from '${stackName}', caused by ${e}`)));
@@ -49,7 +65,11 @@ class CloudformationClient {
       this.logger.info(`Executing changeset on stack ${stackName}`)
       await this.executeChangeSet(stackName, changeSetName)
       this.logger.info(`Waiting for changeset to be applied to stack ${stackName}`)
-      await this.waitFor(stackName, operation == 'CREATE' ? 'stackCreateComplete': 'stackUpdateComplete')  
+      if(operation == 'CREATE') {
+        await this.waitFor(stackName, 'stackCreateComplete', waitUntilStackCreateComplete)
+      } else {
+        await this.waitFor(stackName, 'stackUpdateComplete', waitUntilStackUpdateComplete)
+      }
     }
   }
 
@@ -75,7 +95,7 @@ class CloudformationClient {
       Tags: tags,
       TemplateBody: stackTemplateBody
     };
-    return this.cloudformation.createChangeSet(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new CreateChangeSetCommand(params)))
       .catch(e => Promise.reject(new Error(`Failed to create cloudformation changeset for '${stackName}', caused by ${e}`)));
   }
 
@@ -84,7 +104,7 @@ class CloudformationClient {
       ChangeSetName: changeSetName,
       StackName: stackName
     };
-    return this.cloudformation.executeChangeSet(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new ExecuteChangeSetCommand(params)))
       .catch(e => Promise.reject(new Error(`Failed to execute changeset on cloudformation stack '${stackName}', caused by ${e}`)));
   }
 
@@ -99,7 +119,7 @@ class CloudformationClient {
     var params = {
       StackName: stackName
     };
-    return this.cloudformation.listChangeSets(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new ListChangeSetsCommand(params)))
       .tap(changeSets => this.logger.info(`Found changesets: ${JSON.stringify(changeSets.Summaries.map(c => c.ChangeSetName))}`))
       .catch(e => Promise.reject(new Error(`Failed to list changesets from cloudformation stack '${stackName}', caused by ${e}`)));
   }
@@ -110,7 +130,7 @@ class CloudformationClient {
       ChangeSetName: changeSetName,
       StackName: stackName
     };
-    return this.cloudformation.deleteChangeSet(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new DeleteChangeSetCommand(params)))
       .tap(() => this.logger.info(`Deleted changeset: ${changeSetName}`))
       .catch(e => Promise.reject(new Error(`Failed to delete changeset from cloudformation stack '${stackName}', caused by ${e}`)));
   }
@@ -120,7 +140,7 @@ class CloudformationClient {
     var params = {
       StackName: stackName
     };
-    return this.cloudformation.deleteStack(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new DeleteStackCommand(params)))
       .then(() => {
         return promiseRetry((retry, number) => {
           return this.getStack(stackName)
@@ -146,7 +166,7 @@ class CloudformationClient {
     const params = {
       StackName: stackName
     };
-    return this.cloudformation.describeStacks(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new DescribeStacksCommand(params)))
       .then(response => response.Stacks[0])
       .catch(e => {
         if (e.message.indexOf("not exist") >=0) {
@@ -171,18 +191,18 @@ class CloudformationClient {
     var params = {
       StackName: stackName
     };
-    return this.cloudformation.describeStackEvents(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new DescribeStackEventsCommand(params)))
       .then(response => response.StackEvents)
       .map(e => lodash.pick(e, ['LogicalResourceId', 'ResourceStatus', 'ResourceStatusReason']))
       .catch(e => Promise.reject(new Error(`Failed to get events from stack: '${stackName}', caused by ${e}`)));
   }
 
-  waitFor(stackName, event) {
+  waitFor(stackName, event, func) {
     const params = {
       StackName: stackName
     };
-
-    return this.cloudformation.waitFor(event, params).promise()
+    
+    return Bluebird.resolve(func({client: this.cloudformation, ...this.retryPolicy}, params))
       .catch(e => {
         return this.getEvents(stackName)
           .then((events) => Promise.reject(new Error(`Stack is not in the state '${event}', detailed events:\n${JSON.stringify(events, null, '  ')}`)))
@@ -195,7 +215,7 @@ class CloudformationClient {
       ChangeSetName: changeSetName
     };
 
-    return this.cloudformation.waitFor('changeSetCreateComplete', params).promise()
+    return Bluebird.resolve(waitUntilChangeSetCreateComplete({client: this.cloudformation, ...this.retryPolicy}, params))
       .catch(e => {
         return this.getChangeset(stackName, changeSetName)
           .tap(changeSet => this.logger.debug(`Changeset : ${JSON.stringify(changeSet, null, '  ')}`))
@@ -214,7 +234,7 @@ class CloudformationClient {
       ChangeSetName: changeSetName,
       StackName: stackName
     };
-    return this.cloudformation.describeChangeSet(params).promise()
+    return Bluebird.resolve(this.cloudformation.send(new DescribeChangeSetCommand(params)))
       .catch(e => Promise.reject(new Error(`Failed to get changeset from stack: '${stackName}', caused by ${e}`)));
   }
 

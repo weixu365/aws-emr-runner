@@ -10,7 +10,7 @@ const EmrHadoopDebuggingStep = require('./steps/emr_hadoop_debugging_step');
 class Config {
   constructor(configPath, settingsPath) {
     this.configPath = configPath
-    this.settingsPath = settingsPath
+    this.settingsPath = settingsPath ?? []
     this.logger = logger
     this.overrideSettings = {}
 
