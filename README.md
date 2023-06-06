@@ -168,3 +168,54 @@ resources:
                 Identifiers:
                   - "s3://your-bucket/"
 ```
+
+## Regression Test:
+- validate
+  - validate config file with settings
+
+    ```bash
+      BUILD_NUMBER=123 bin/aws-emr-runner-macos validate -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+    ```
+
+  - validate config file without settings
+
+    ```bash
+      BUILD_NUMBER=123 bin/aws-emr-runner-macos validate -f samples/enrichment-pipeline.yml
+    ```
+
+- resources
+  - create resource stack
+    
+    ```bash
+      BUILD_NUMBER=123 bin/aws-emr-runner-macos resources -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+    ```
+
+  - delete resource stack
+
+    ```bash
+      BUILD_NUMBER=123 bin/aws-emr-runner-macos delete-resources -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+    ```
+
+- cluster
+  - start cluster
+  
+    ```bash
+      BUILD_NUMBER=123 bin/aws-emr-runner-macos start-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml
+    ```
+
+  - delete cluster
+
+    ```bash
+      BUILD_NUMBER=123 bin/aws-emr-runner-macos terminate-cluster -f samples/enrichment-pipeline.yml -s samples/enrichment-pipeline.settings.yml --cluster-id <id>
+    ```
+
+  - auto delete cluster
+  - run-step
+    - run spark step on cluster
+- run
+  - wait for complete successfully
+  - wait for cancelled steps and fail
+
+## TODO:
+- Auto delete resource stack if can't updated
+  Failed to create cloudformation changeset for 'sample-spark-application-resources-prod', caused by ValidationError: Stack:arn:aws:cloudformation:ap-southeast-2:807579936170:stack/sample-spark-application-resources-prod/91895dd0-03a5-11ee-a3e7-02dee24aa130 is in ROLLBACK_COMPLETE state and can not be updated.

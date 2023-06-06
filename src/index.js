@@ -30,7 +30,6 @@ program
   .action(() => {
     logger.info('Validate configs');
     const opts = program.opts();
-    logger.info(opts);
     logger.info(`- setting files ${opts.settingFiles}`);
     logger.info(`- config file ${opts.configFile}`);
 

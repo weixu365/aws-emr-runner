@@ -13,7 +13,7 @@ prune:
 
 package:
 	mkdir -p bin && rm -rf bin/*
-	npx pkg -c package.json --out-path bin src/index.js
+	npx -y pkg -t node16-linux-x64,node16-macos-x64,node16-win-x64 -c package.json --out-path bin src/index.js
 	bzip2 -k bin/*
 
 release:

@@ -1,10 +1,11 @@
+const Bluebird = require("bluebird");
+const { S3Client: S3, PutObjectTaggingCommand, GetObjectCommand, PutObjectCommand, ListObjectsV2Command } = require("@aws-sdk/client-s3");
 const fs = require("fs");
-const AWS = require("./aws");
 const logger = require("../logger");
 
 class S3Client {
   constructor(region) {
-    this.s3 = new AWS.S3({region})
+    this.s3 = new S3({region})
     this.logger = logger
   }
 
@@ -14,7 +15,7 @@ class S3Client {
       Key: key,
       Tagging: tags
      };
-     return this.s3.putObjectTagging(params).promise()
+     return Bluebird.resolve(this.s3.send(new PutObjectTaggingCommand(params)))
       .then(() => this.logger.info(`Applied tags to s3 object ${bucket}/${key}`))
       .catch(e => Promise.reject(new Error(`Failed to apply tags to s3 object ${bucket}${key}, caused by ${e}`)));
   }  
@@ -24,7 +25,7 @@ class S3Client {
       Bucket: bucket,
       Key: key
     };
-    return this.s3.getObject(getObjectParams).promise()
+    return Bluebird.resolve(this.s3.send(new GetObjectCommand(getObjectParams)))
       .then(response => response.Body.toString('utf-8'))
       .catch(e => Promise.reject(new Error(`Failed to get s3 object from ${bucket}/${key}, caused by ${e}`)));
   }
@@ -35,7 +36,7 @@ class S3Client {
       Key: destKey,
       Body: dataBody
     };
-    return this.s3.putObject(putObjectParams).promise()
+    return Bluebird.resolve(this.s3.send(new PutObjectCommand(putObjectParams)))
       // .then(() => this.logger.info(`Put s3 object to ${destinationBucket}/${destKey}`))
       .catch(e => Promise.reject(new Error(`Failed to put s3 object to ${destinationBucket}/${destKey}, caused by ${e}`)));
   }
@@ -48,7 +49,7 @@ class S3Client {
       Key: destKey,
       Body: sourceStream
     };
-    return this.s3.upload(putObjectParams).promise()
+    return Bluebird.resolve(this.s3.send(new PutObjectCommand(putObjectParams)))
       // .then(() => this.logger.info(`Uploaded ${filePath} to ${destinationBucket}/${destKey}`))
       .catch(e => Promise.reject(new Error(`Failed to upload s3 object to ${destinationBucket}/${destKey}, caused by ${e}`)));
   }
@@ -59,7 +60,7 @@ class S3Client {
       ContinuationToken: continuationToken,
       Prefix: prefix
     };
-    return this.s3.listObjectsV2(params).promise()
+    return Bluebird.resolve(this.s3.send(new ListObjectsV2Command(params)))
       // .tap(() => this.logger.info(`List s3 objects ${bucket}/${prefix}`))
       .catch(e => Promise.reject(new Error(`Failed to list s3 objects with prefix ${prefix} in bucket ${bucket}, caused by ${e}`)));
   }
