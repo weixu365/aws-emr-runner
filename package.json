@@ -20,17 +20,17 @@
     "lodash": "^4.17.20",
     "mustache": "^4.0.1",
     "promise-retry": "^2.0.1",
-    "winston": "^3.3.3"
+    "winston": "^3.9.0"
   },
   "devDependencies": {
     "@semantic-release/exec": "^6.0.3",
-    "@semantic-release/github": "^8.0.0",
+    "@semantic-release/github": "^9.0.0",
     "chai": "^4.2.0",
     "commitizen": "^4.2.1",
     "cz-conventional-changelog": "^3.3.0",
     "mocha": "^10.0.0",
     "pkg": "^5.0.0",
-    "semantic-release": "^21.0.0"
+    "semantic-release": "^21.0.5"
   },
   "config": {
     "commitizen": {
