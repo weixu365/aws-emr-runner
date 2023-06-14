@@ -12,6 +12,7 @@ package:
 	mkdir -p bin && rm -rf bin/*
 	npx -y pkg -t node16-linuxstatic-x64,node16-macos-x64,node16-win-x64 -c package.json --out-path bin src/index.js
 	npx -y pkg -t node16-macos-arm64 --no-bytecode --public-packages "*" --public -c package.json --o bin/aws-emr-runner-macos-arm64 src/index.js
+	mv bin/aws-emr-runner-linuxstatic bin/aws-emr-runner-linux
 	bzip2 -k bin/*
 
 release:
