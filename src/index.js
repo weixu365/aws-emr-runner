@@ -17,6 +17,7 @@ process.on('unhandledRejection', error => {
 
 const program = new Command()
   .name("aws-emr-runner")
+  .description("Automatically start AWS EMR cluster, run Spark application, and wait for completion")
   .version(package.version)
   .option('-v, --verbose', 'Show verbose output')
   .option('-s, --setting-files <setting_files...>', 'setting files')
@@ -25,11 +26,14 @@ const program = new Command()
     logger.level = 'debug'
   })
 
+const showHeader = () => logger.info(`AWS EMR Runner, version ${package.version}`);
+
 program
   .command('validate')
   .description('Validate config files')
   .action(() => {
-    logger.info('Validate configs');
+    showHeader();
+    logger.info('Validating configs');
     const opts = program.opts();
     logger.info(`- setting files ${opts.settingFiles}`);
     logger.info(`- config file ${opts.configFile}`);
@@ -94,6 +98,7 @@ program
   .option('--no-keep-cluster',  'Do not keep cluster running after steps completed')
   .description('Start a new EMR cluster and run steps')
   .action((cmd) => {
+    showHeader();
     logger.info('Run emr cluster and step');
     
     const config = getConfig()
