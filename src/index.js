@@ -3,6 +3,7 @@ const { Command } = require('commander');
 const Config = require('./config')
 const EmrRunner = require('./emr_runner')
 const logger = require('./logger')
+const package = require('./package.json')
 
 const getConfig = () => {
   const opts = program.opts();
@@ -16,7 +17,7 @@ process.on('unhandledRejection', error => {
 
 const program = new Command()
   .name("aws-emr-runner")
-  .version('1.0.0')
+  .version(package.version)
   .option('-v, --verbose', 'Show verbose output')
   .option('-s, --setting-files <setting_files...>', 'setting files')
   .requiredOption('-f, --config-file <config file>', 'config file')

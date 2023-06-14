@@ -1,5 +1,3 @@
-
-
 DOCKER=docker run -it --rm \
       -v `pwd`:/workdir \
       -w /workdir \
@@ -13,11 +11,12 @@ prune:
 
 package:
 	mkdir -p bin && rm -rf bin/*
-	npx -y pkg -t node16-linux-x64,node16-macos-x64,node16-win-x64 -c package.json --out-path bin src/index.js
+	npx -y pkg -t node16-linuxstatic-x64,node16-macos-x64,node16-win-x64 -c package.json --out-path bin src/index.js
+	npx -y pkg -t node16-macos-arm64 --no-bytecode --public-packages "*" --public -c package.json --out-path bin/aws-emr-runner-macos-arm64 src/index.js
 	bzip2 -k bin/*
 
 release:
-	npx semantic-release
+	npx -y semantic-release
 
 docker-build:
 	docker build -f Dockerfile -t aws-emr-runner .
