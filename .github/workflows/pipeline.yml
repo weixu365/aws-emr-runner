@@ -36,6 +36,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build --if-present
-    - run: make prune package release
+    - run: make release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
