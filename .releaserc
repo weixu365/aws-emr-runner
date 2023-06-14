@@ -20,6 +20,7 @@
         "assets": [
           {"path": "bin/aws-emr-runner-linux.bz2"},
           {"path": "bin/aws-emr-runner-macos.bz2"},
+          {"path": "bin/aws-emr-runner-macos-arm64.bz2"},
           {"path": "bin/aws-emr-runner-win.exe.bz2"}
         ]
       }
