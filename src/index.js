@@ -3,7 +3,7 @@ const { Command } = require('commander');
 const Config = require('./config')
 const EmrRunner = require('./emr_runner')
 const logger = require('./logger')
-const package = require('./package.json')
+const package = require('../package.json')
 
 const getConfig = () => {
   const opts = program.opts();

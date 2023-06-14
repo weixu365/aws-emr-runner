@@ -35,6 +35,7 @@ command-test:
 		--setting-files samples/enrichment-pipeline.settings.yml \
 		-f samples/enrichment-pipeline.yml \
 		validate
+	BATCH=1234 GIT_BRANCH=test BUILD_NUMBER=test node src/index.js --version
 
 integration-test:
 	npx mocha integration-test
