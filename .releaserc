@@ -2,12 +2,32 @@
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
-    ["@semantic-release/github", {
-      "assets": [
-        {"path": "bin/aws-emr-runner-linux.bz2"},
-        {"path": "bin/aws-emr-runner-macos.bz2"},
-        {"path": "bin/aws-emr-runner-win.exe.bz2"}
-      ]
-    }],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "make prune package"
+      }
+    ],
+    [
+      "@semantic-release/github", 
+      {
+        "assets": [
+          {"path": "bin/aws-emr-runner-linuxstatic.bz2"},
+          {"path": "bin/aws-emr-runner-macos.bz2"},
+          {"path": "bin/aws-emr-runner-macos-arm64.bz2"},
+          {"path": "bin/aws-emr-runner-win.exe.bz2"}
+        ]
+      }
+    ]
+  ],
+  "branches": [
+    { "name": "master" },
+    { "name": "beta", "channel": "beta", "prerelease": true }
   ]
 }

@@ -1,5 +1,3 @@
-
-
 DOCKER=docker run -it --rm \
       -v `pwd`:/workdir \
       -w /workdir \
@@ -8,16 +6,16 @@ DOCKER=docker run -it --rm \
       node
 
 prune:
-	npm prune --production
 	find node_modules -name '*.d.ts' | xargs rm
 
 package:
 	mkdir -p bin && rm -rf bin/*
-	npx -y pkg -t node16-linux-x64,node16-macos-x64,node16-win-x64 -c package.json --out-path bin src/index.js
+	npx -y pkg -t node16-linuxstatic-x64,node16-macos-x64,node16-win-x64 -c package.json --out-path bin src/index.js
+	npx -y pkg -t node16-macos-arm64 --no-bytecode --public-packages "*" --public -c package.json --o bin/aws-emr-runner-macos-arm64 src/index.js
 	bzip2 -k bin/*
 
 release:
-	npx semantic-release
+	npx -y semantic-release
 
 docker-build:
 	docker build -f Dockerfile -t aws-emr-runner .
@@ -36,6 +34,7 @@ command-test:
 		--setting-files samples/enrichment-pipeline.settings.yml \
 		-f samples/enrichment-pipeline.yml \
 		validate
+	BATCH=1234 GIT_BRANCH=test BUILD_NUMBER=test node src/index.js --version
 
 integration-test:
 	npx mocha integration-test

@@ -24,19 +24,22 @@ jobs:
   Publish:
     runs-on: ubuntu-latest
     needs: Test
-    if: github.ref == 'refs/heads/master'
     strategy:
       matrix:
         node-version: [18.x]
 
     steps:
     - uses: actions/checkout@v3
+    - name: Install ldid
+      uses: MOZGIII/install-ldid-action@v1
+      with:
+        tag: v2.1.5-procursus2
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
     - run: npm run build --if-present
-    - run: make prune package release
+    - run: make release
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
